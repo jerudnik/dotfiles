@@ -1,0 +1,18 @@
+# Nix
+result
+result-*
+.direnv/
+
+# Emacs
+*~
+\#*\#
+.#*
+
+# Serena (AI assistant state)
+.serena/
+
+# Session files
+session-*.md
+
+# macOS
+.DS_Store
