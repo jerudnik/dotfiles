@@ -508,6 +508,52 @@ let
         ```
       '';
     };
+
+    serena-workflow = {
+      name = "serena-workflow";
+      description = "Best practices for using Serena MCP server tools";
+      tags = [
+        "serena"
+        "mcp"
+        "code-intelligence"
+        "workflow"
+      ];
+      content = ''
+        # Serena Workflow Best Practices
+
+        ## When to Use Serena
+        Use Serena tools when you need semantic code understanding:
+        - Finding symbol definitions across files
+        - Tracing references to functions/options
+        - Understanding module structure before edits
+        - Navigating between related Nix expressions
+
+        ## Preferred Tool Order
+        1. `get_symbols_overview` - understand file structure first
+        2. `find_symbol` - locate specific definitions by name
+        3. `find_referencing_symbols` - find all usages
+        4. `search_for_pattern` - only when symbolic search is insufficient
+
+        ## Memory Management
+        - Check `list_memories` before re-learning project context
+        - Use `write_memory` for persistent knowledge (module relationships, conventions)
+        - Memories persist in `.serena/memories/` per-project
+
+        ## Nix-Specific Tips
+        - The `nix-focused` mode prioritizes `*.nix` files
+        - Symbol search works for top-level attributes and functions
+        - Use pattern search for inline `let` bindings (not indexed as symbols)
+
+        ## Configuration
+        Serena is configured in `modules/home/ai/mcp.nix` with:
+        - `--context claude-code` - built-in context for Claude agents
+        - `--project-from-cwd` - dynamically resolves project from working directory
+        - `--mode nix-focused` - custom mode for Nix patterns
+
+        Project config: `.serena/project.yml`
+        Mode definition: `~/.serena/modes/nix-focused.yml`
+      '';
+    };
   };
 
   # ============================================================

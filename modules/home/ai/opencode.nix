@@ -96,6 +96,20 @@ let
         # Git operations
         "git *" = "allow";
 
+        # Nix operations
+        "nix fmt" = "allow";
+        "nix fmt *" = "allow";
+        "nix flake check" = "allow";
+        "nix flake check *" = "allow";
+        "nix flake update" = "allow";
+        "nix flake update *" = "allow";
+        "nix build *" = "allow";
+        "nix develop" = "allow";
+        "nix develop *" = "allow";
+        "nix eval *" = "allow";
+        "nix repl *" = "allow";
+        "nixfmt *" = "allow";
+
         # System info
         "whoami" = "allow";
         "id" = "allow";

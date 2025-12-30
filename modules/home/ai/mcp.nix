@@ -152,6 +152,8 @@ let
         "--context"
         "claude-code"
         "--project-from-cwd"
+        "--mode"
+        "nix-focused"
       ];
       description = "Semantic code retrieval and editing via LSP";
     };

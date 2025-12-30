@@ -26,8 +26,9 @@
     # Disable gnupg SSH key paths as well
     gnupg.sshKeyPaths = [ ];
 
-    # Set environment for sops-install-secrets to find the age plugin
-    environment.PATH = lib.makeBinPath [ pkgs.age-plugin-yubikey ];
+    # Set environment for sops-install-secrets to find the age plugin and macOS binaries
+    # Needs: hdiutil (/usr/bin), newfs_hfs (/sbin), mount (/sbin) for ramdisk secrets
+    environment.PATH = lib.makeBinPath [ pkgs.age-plugin-yubikey ] + ":/usr/bin:/sbin";
 
     # Declare secrets to be decrypted
     secrets = {
