@@ -49,6 +49,12 @@
     curl
     wget
     httpie # User-friendly HTTP client
+    openssh # SSH with FIDO2/Yubikey support (replaces macOS built-in)
+
+    # ============================================================
+    # Security & Authentication
+    # ============================================================
+    yubikey-manager # Yubikey management CLI (ykman)
 
     # ============================================================
     # Compression

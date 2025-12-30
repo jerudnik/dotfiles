@@ -61,6 +61,13 @@
         owner = "john";
         mode = "0400";
       };
+
+      # SSH authorized public key (Yubikey ed25519-sk)
+      # Decrypted to /run/secrets/ssh/authorized_key
+      # Used by sshd module for system-wide authorized_keys
+      "ssh/authorized_key" = {
+        mode = "0444"; # World-readable (it's a public key)
+      };
     };
   };
 

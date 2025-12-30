@@ -11,6 +11,7 @@
   imports = [
     ./shell
     ./git.nix
+    ./ssh.nix
     ./editors
     ./terminal
     ./apps

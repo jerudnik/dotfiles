@@ -37,23 +37,24 @@ hosts/
 modules/
   base/
     stylix.nix               # Theming configuration (cross-platform)
-  darwin/
-    default.nix              # Darwin module index
-    system.nix               # macOS system preferences
-    homebrew.nix             # Homebrew casks and formulae
-    secrets.nix              # sops-nix secrets configuration
-    services/                # Custom launchd services (ollama, whisper, etc.)
-  home/
-    default.nix              # Home-manager module index
-    shell/                   # Shell configuration (zsh, starship)
-    editors/                 # Editor configs (helix)
-    terminal/                # Terminal emulators (ghostty, wezterm)
-    apps/                    # Application configs
-    ai/                      # AI tools (OpenCode, MCP servers)
-    packages.nix             # CLI tools
-    git.nix                  # Git configuration
-    development.nix          # Dev tools and runtimes
-    python-tools.nix         # Python-specific tooling
+   darwin/
+     default.nix              # Darwin module index
+     system.nix               # macOS system preferences
+     homebrew.nix             # Homebrew casks and formulae
+     secrets.nix              # sops-nix secrets configuration
+     services/                # Custom launchd services (ollama, whisper, sshd)
+   home/
+     default.nix              # Home-manager module index
+     shell/                   # Shell configuration (zsh, starship)
+     editors/                 # Editor configs (helix)
+     terminal/                # Terminal emulators (ghostty, wezterm)
+     apps/                    # Application configs
+     ai/                      # AI tools (OpenCode, MCP servers)
+     packages.nix             # CLI tools
+     git.nix                  # Git configuration
+     ssh.nix                  # SSH client with FIDO2/Yubikey support
+     development.nix          # Dev tools and runtimes
+     python-tools.nix         # Python-specific tooling
 users/john/
   home.nix                   # User home-manager entry point
 themes/
@@ -130,9 +131,10 @@ sops.secrets."api_keys/example" = { };
 # Reference in configs with: {file:/run/secrets/api_keys/example}
 ```
 
-- Never commit unencrypted secrets
-- Encrypted secrets.yaml is safe to commit (requires physical Yubikey to decrypt)
-- See `docs/ai-tools-setup.md` for full documentation
+ - Never commit unencrypted secrets
+ - Encrypted secrets.yaml is safe to commit (requires physical Yubikey to decrypt)
+ - See `docs/ai-tools-setup.md` for full documentation
+ - See `docs/ssh.md` for SSH key management
 
 ## Theming (Stylix)
 
@@ -182,10 +184,78 @@ mcpServerDefinitions = {
 };
 ```
 
-Enable client configs in `modules/home/ai/default.nix`:
+ Enable client configs in `modules/home/ai/default.nix`:
+ ```nix
+ services.mcp.enableClaudeDesktop = true;  # ~/Library/Application Support/Claude/
+ services.mcp.enableCursor = true;          # ~/.cursor/mcp.json
+ ```
+
+## SSH (FIDO2 Yubikey Authentication)
+
+SSH is configured with hardened server settings and FIDO2 Yubikey support. See `docs/ssh.md` for full documentation.
+
+### SSH Server
+
+Hardened SSH server service for remote login:
+
 ```nix
-services.mcp.enableClaudeDesktop = true;  # ~/Library/Application Support/Claude/
-services.mcp.enableCursor = true;          # ~/.cursor/mcp.json
+# In host config (e.g., hosts/mac-studio/default.nix)
+services.sshd = {
+  enable = true;
+  authorizedKeysFile = config.sops.secrets."ssh/authorized_key".path;
+  passwordAuthentication = false;  # pubkey-only
+  permitRootLogin = "no";        # no root login
+};
+```
+
+Authorized keys are managed via sops secrets:
+```nix
+# modules/darwin/secrets.nix
+sops.secrets."ssh/authorized_key" = { mode = "0444"; };
+```
+
+### SSH Client
+
+Client configuration with FIDO2 support and multi-machine setup:
+
+```nix
+# modules/home/ssh.nix (auto-imported)
+# Configures host entries for Mac Studio and MacBook Air
+# Prioritizes Nix openssh over macOS built-in for FIDO2 support
+```
+
+Key packages:
+```nix
+# modules/home/packages.nix
+home.packages = with pkgs; [
+  openssh          # FIDO2 support
+  yubikey-manager  # Yubikey management
+];
+```
+
+### Generating FIDO2 Keys
+
+```bash
+# Generate resident key (requires Yubikey touch)
+ssh-keygen -t ed25519-sk -f ~/.ssh/id_ed25519_sk -C "Yubikey FIDO2 key"
+
+# Extract public key
+cat ~/.ssh/id_ed25519_sk.pub
+
+# Add to secrets.yaml
+SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets/secrets.yaml
+```
+
+### Multi-Machine Access
+
+Pre-configured hosts:
+- `seriousCallersOnly` / `seriousCallersOnly.local` (Mac Studio, user `john`)
+- `inOneEar` / `inOneEar.local` (MacBook Air, user `jrudnik`)
+
+Connect via Tailscale (primary) or local network (fallback):
+```bash
+ssh seriousCallersOnly
+ssh inOneEar
 ```
 
 ## Common Patterns

@@ -12,6 +12,7 @@
     ./system.nix
     ./homebrew.nix
     ./secrets.nix
+    ./services/sshd.nix
     ./services/exo.nix
     ./services/ollama.nix
     ./services/tailscale.nix

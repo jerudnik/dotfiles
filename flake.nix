@@ -120,13 +120,15 @@
           ];
         };
       };
-    in
-    {
-      # ============================================================
-      # Darwin (macOS) Configurations
-      # ============================================================
-      darwinConfigurations = {
-        "johns-Mac-Studio" = nix-darwin.lib.darwinSystem {
+
+      # Helper to create darwin system configurations
+      mkDarwinSystem =
+        {
+          hostname,
+          hostPath,
+          username,
+        }:
+        nix-darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           specialArgs = mkSpecialArgs "aarch64-darwin";
           modules = [
@@ -141,7 +143,7 @@
             # mac-app-util.darwinModules.default
 
             # Host-specific configuration
-            ./hosts/mac-studio
+            hostPath
 
             # home-manager integration
             home-manager.darwinModules.home-manager
@@ -150,7 +152,7 @@
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 extraSpecialArgs = mkSpecialArgs "aarch64-darwin";
-                users.john = ./users/john/home.nix;
+                users.${username} = ./users/${username}/home.nix;
                 backupFileExtension = "backup";
 
                 # TODO: Re-enable mac-app-util sharedModules when upstream issue is resolved
@@ -163,6 +165,25 @@
             # sops-nix for secrets
             sops-nix.darwinModules.sops
           ];
+        };
+    in
+    {
+      # ============================================================
+      # Darwin (macOS) Configurations
+      # ============================================================
+      darwinConfigurations = {
+        # Mac Studio - AI inference server and primary workstation
+        "seriousCallersOnly" = mkDarwinSystem {
+          hostname = "seriousCallersOnly";
+          hostPath = ./hosts/mac-studio;
+          username = "john";
+        };
+
+        # MacBook Air - Work laptop
+        "inOneEar" = mkDarwinSystem {
+          hostname = "inOneEar";
+          hostPath = ./hosts/inOneEar;
+          username = "jrudnik";
         };
       };
 
@@ -185,7 +206,8 @@
                 ];
                 text = ''
                   echo "Applying nix-darwin configuration..."
-                  sudo darwin-rebuild switch --flake .
+                  HOSTNAME=$(scutil --get LocalHostName)
+                  sudo darwin-rebuild switch --flake ".#$HOSTNAME"
                   echo "Configuration applied successfully!"
                 '';
               })

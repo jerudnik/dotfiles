@@ -1,5 +1,5 @@
-# Mac Studio host configuration
-# AI Inference Server Setup
+# MacBook Air host configuration
+# Work laptop - shares most config with Mac Studio but NO AI model hosting
 {
   config,
   pkgs,
@@ -15,41 +15,22 @@
   ];
 
   # Primary user for nix-darwin (required for user-specific settings)
-  system.primaryUser = "john";
+  system.primaryUser = "jrudnik";
 
   # Host-specific settings
-  networking.hostName = "seriousCallersOnly";
-  networking.computerName = "seriousCallersOnly";
+  networking.hostName = "inOneEar";
+  networking.computerName = "inOneEar";
 
   # User configuration
-  users.users.john = {
-    name = "john";
-    home = "/Users/john";
+  users.users.jrudnik = {
+    name = "jrudnik";
+    home = "/Users/jrudnik";
     shell = pkgs.zsh;
   };
 
   # ============================================================
-  # AI Inference Services
+  # Services
   # ============================================================
-
-  # Disable exo for now (using Ollama instead)
-  services.exo.enable = false;
-
-  # Ollama - LLM inference server
-  services.ollama = {
-    enable = true;
-    host = "0.0.0.0"; # Network accessible
-    port = 11434;
-  };
-
-  # Whisper.cpp - Speech-to-text transcription
-  services.whisper = {
-    enable = true;
-    model = "large-v3";
-  };
-
-  # Tailscale - Secure remote access
-  services.tailscale.enable = true;
 
   # SSH server for remote access
   services.sshd = {
@@ -57,10 +38,23 @@
     authorizedKeysFile = config.sops.secrets."ssh/authorized_key".path;
   };
 
+  # Tailscale - Secure remote access
+  services.tailscale.enable = true;
+
   # ============================================================
   # Editor Services
   # ============================================================
 
   # Emacs - daemon mode for instant startup
   services.emacs-daemon.enable = true;
+
+  # ============================================================
+  # AI Services - DISABLED on MacBook Air
+  # ============================================================
+  # This machine does not run local AI models
+  # Use AI tools that connect to seriousCallersOnly or remote APIs
+
+  services.exo.enable = false;
+  services.ollama.enable = false;
+  services.whisper.enable = false;
 }
