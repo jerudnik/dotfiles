@@ -56,6 +56,17 @@ in
       ''}
     '';
 
+    # Pre-activation: Remove authorized_keys.d to prevent nix-darwin security check failure
+    # This is safe because we fully manage this directory via our postActivation script
+    system.activationScripts.preActivation.text = mkIf (cfg.authorizedKeysFile != null) ''
+      # Remove existing authorized_keys.d to prevent nix-darwin aborting
+      # (nix-darwin has a security check that aborts if this directory exists)
+      if [ -d /etc/ssh/authorized_keys.d ]; then
+        echo "Removing /etc/ssh/authorized_keys.d for re-activation..."
+        rm -rf /etc/ssh/authorized_keys.d
+      fi
+    '';
+
     # System activation to enable Remote Login and set up authorized keys
     system.activationScripts.postActivation.text = ''
       # Enable Remote Login (SSH server)

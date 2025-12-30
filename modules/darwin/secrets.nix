@@ -15,8 +15,9 @@
     defaultSopsFile = ../../secrets/secrets.yaml;
 
     # Age key configuration - Yubikey identity file
+    # Use primaryUser to support different users on different machines
     age = {
-      keyFile = "/Users/john/.config/sops/age/yubikey-identity.txt";
+      keyFile = "/Users/${config.system.primaryUser}/.config/sops/age/yubikey-identity.txt";
       # Don't generate a new key - we're using Yubikey
       generateKey = false;
       # Disable SSH key paths - we only use Yubikey
@@ -34,9 +35,9 @@
     secrets = {
       # OpenCode Zen API key
       # Decrypted to /run/secrets/api_keys/opencode_zen
-      # Readable by john so it can be loaded into environment
+      # Readable by primary user so it can be loaded into environment
       "api_keys/opencode_zen" = {
-        owner = "john";
+        owner = config.system.primaryUser;
         mode = "0400";
       };
 
@@ -44,21 +45,21 @@
       # Used by MCP github server
       # Decrypted to /run/secrets/api_keys/github_token
       "api_keys/github_token" = {
-        owner = "john";
+        owner = config.system.primaryUser;
         mode = "0400";
       };
 
       # Context7 API key (optional, for authenticated access)
       # Decrypted to /run/secrets/api_keys/context7
       "api_keys/context7" = {
-        owner = "john";
+        owner = config.system.primaryUser;
         mode = "0400";
       };
 
       # Exa API key for web search MCP server
       # Decrypted to /run/secrets/api_keys/exa
       "api_keys/exa" = {
-        owner = "john";
+        owner = config.system.primaryUser;
         mode = "0400";
       };
 
