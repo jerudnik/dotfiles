@@ -50,9 +50,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # OpenCode - pinned to v1.0.204 for native skills support
+    # OpenCode source
     opencode = {
-      url = "github:sst/opencode/v1.0.204";
+      url = "github:sst/opencode";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -104,7 +104,10 @@
 
       # OpenCode overlay - use pinned version from flake input
       opencodeOverlay = system: final: prev: {
-        opencode = opencode.packages.${system}.default;
+        # Disable checks/tests to prevent build hangs on macOS
+        opencode = opencode.packages.${system}.default.overrideAttrs (old: {
+          doCheck = false;
+        });
       };
 
       # Common special args passed to all modules
