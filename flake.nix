@@ -55,6 +55,9 @@
       url = "github:nix-community/emacs-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # NixOS hardware quirks and optimizations
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
   };
 
   outputs =
@@ -68,6 +71,7 @@
       stylix,
       opencode,
       emacs-overlay,
+      nixos-hardware,
       ...
     }@inputs:
     let
@@ -162,6 +166,41 @@
             sops-nix.darwinModules.sops
           ];
         };
+
+      # Helper to create NixOS system configurations
+      mkNixosSystem =
+        {
+          hostname,
+          hostPath,
+          username,
+          system ? "x86_64-linux",
+        }:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = mkSpecialArgs system;
+          modules = [
+            # Stylix theming
+            stylix.nixosModules.stylix
+
+            # Host-specific configuration
+            hostPath
+
+            # home-manager integration
+            home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                extraSpecialArgs = mkSpecialArgs system;
+                users.${username} = ./users/${username}/home-linux.nix;
+                backupFileExtension = "backup";
+              };
+            }
+
+            # sops-nix for secrets
+            sops-nix.nixosModules.sops
+          ];
+        };
     in
     {
       # ============================================================
@@ -180,6 +219,19 @@
           hostname = "inOneEar";
           hostPath = ./hosts/inOneEar;
           username = "jrudnik";
+        };
+      };
+
+      # ============================================================
+      # NixOS Configurations
+      # ============================================================
+      nixosConfigurations = {
+        # Google Pixelbook (2017) - Portable NixOS workstation
+        "sleeper-service" = mkNixosSystem {
+          hostname = "sleeper-service";
+          hostPath = ./hosts/sleeper-service;
+          username = "john";
+          system = "x86_64-linux";
         };
       };
 

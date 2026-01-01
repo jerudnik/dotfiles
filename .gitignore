@@ -16,3 +16,6 @@ session-*.md
 
 # macOS
 .DS_Store
+
+# NixOS hardware configuration (machine-specific)
+hardware-configuration.nix

@@ -5,10 +5,21 @@
   ...
 }:
 let
-  schemes = import ../../themes/modus.nix { inherit lib; };
+  modusSchemes = import ../../themes/modus.nix { inherit lib; };
+  nordSchemes = import ../../themes/nord.nix { inherit lib; };
   cfg = config.themes;
   variantScheme =
-    schemeName: if schemeName == "modus-operandi" then schemes.operandi else schemes.vivendi;
+    schemeName:
+    if schemeName == "modus-operandi" then
+      modusSchemes.operandi
+    else if schemeName == "modus-vivendi" then
+      modusSchemes.vivendi
+    else if schemeName == "nord" then
+      nordSchemes.nord
+    else if schemeName == "nord-light" then
+      nordSchemes.nord-light
+    else
+      modusSchemes.vivendi;
   fontPackages = [
     pkgs.nerd-fonts.im-writing
     pkgs.ibm-plex
@@ -20,10 +31,14 @@ in
     type = lib.types.enum [
       "modus-operandi"
       "modus-vivendi"
+      "nord"
+      "nord-light"
     ];
     default = "modus-vivendi";
     description = ''
-      Select the global theme variant. "modus-operandi" is light, "modus-vivendi" is dark.
+      Select the global theme variant.
+      "modus-operandi" is light, "modus-vivendi" is dark.
+      "nord" is dark, "nord-light" is light.
     '';
   };
 
@@ -37,8 +52,8 @@ in
           name = "IBM Plex Serif";
         };
         sansSerif = {
-          package = pkgs.ibm-plex;
-          name = "IBM Plex Sans";
+          package = pkgs.nerd-fonts.im-writing;
+          name = "iMWritingQuattro Nerd Font";
         };
         monospace = {
           package = pkgs.nerd-fonts.im-writing;

@@ -1,13 +1,103 @@
-# Common NixOS configuration shared across all Linux hosts
-# (Placeholder for future NixOS machines)
+# Shared NixOS configuration for all NixOS hosts
 {
   config,
-  pkgs,
   lib,
+  pkgs,
+  inputs,
   ...
 }:
-
 {
-  # This file is a placeholder for future NixOS configurations
-  # When you add a NixOS machine, common settings will go here
+  imports = [
+    # Cross-platform theming
+    ../../../modules/base/stylix.nix
+  ];
+
+  # ==========================================================================
+  # Nix Settings
+  # ==========================================================================
+  nix = {
+    settings = {
+      # Enable flakes and new nix command
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+
+      # Trusted users for remote builds and caching
+      trusted-users = [
+        "root"
+        "@wheel"
+      ];
+
+      # Optimize storage
+      auto-optimise-store = true;
+    };
+
+    # Garbage collection
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 30d";
+    };
+  };
+
+  # ==========================================================================
+  # Boot
+  # ==========================================================================
+  boot.loader = {
+    systemd-boot.enable = true;
+    efi.canTouchEfiVariables = true;
+  };
+
+  # ==========================================================================
+  # Networking
+  # ==========================================================================
+  networking.networkmanager.enable = true;
+
+  # ==========================================================================
+  # Hardware
+  # ==========================================================================
+  hardware.enableRedistributableFirmware = true;
+
+  # Bluetooth
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+
+  # ==========================================================================
+  # Audio (PipeWire)
+  # ==========================================================================
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    wireplumber.enable = true;
+  };
+
+  # Disable PulseAudio (using PipeWire instead)
+  services.pulseaudio.enable = false;
+
+  # RealtimeKit for audio priority
+  security.rtkit.enable = true;
+
+  # ==========================================================================
+  # Security Defaults
+  # ==========================================================================
+  security.polkit.enable = true;
+
+  # ==========================================================================
+  # XDG Portal (required for Wayland screen sharing, file dialogs, etc.)
+  # ==========================================================================
+  xdg.portal = {
+    enable = true;
+    wlr.enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  };
+
+  # ==========================================================================
+  # Allow unfree packages
+  # ==========================================================================
+  nixpkgs.config.allowUnfree = true;
 }
