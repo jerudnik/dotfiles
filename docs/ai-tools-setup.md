@@ -90,9 +90,14 @@ opencode --version
 
 ## MCP Servers (where to configure)
 - Definitions: `modules/home/ai/mcp.nix`
-- Types: `remote`, `local-nix`, `local-uvx` (preferred for Python tools)
+- Deployment strategies:
+  - `remote`: Third-party hosted SSE endpoints (context7, exa)
+  - `local-nix`: Stable Nix packages from nixpkgs (github-mcp-server)
+  - `local-npx`: Official TypeScript MCP servers via npx (filesystem, memory, sequential-thinking)
+  - `local-uvx`: Python tools via uvx (mcp-nixos, grep-mcp, serena)
+- Prefer official TypeScript implementations (`@modelcontextprotocol/*`) via `npx --yes` when available
+- Default memory storage: `~/Utility/mcp-memory/memory.jsonl` (directory ensured by the config)
 - Clients: enable in `modules/home/ai/default.nix`
-- Details remain in `docs/ai-tools-setup.md` (this file) and code; no duplicate blocks here.
 
 ## Walkthrough (condensed)
 1) `nix develop`

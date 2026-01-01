@@ -18,18 +18,20 @@ let
   #
   # Deployment strategies:
   #   - "remote"    : Third-party hosted SSE endpoints (context7, exa)
-  #   - "local-nix" : Stable Nix packages from nixpkgs or mcp-servers-nix
+  #   - "local-nix" : Stable Nix packages from nixpkgs (github-mcp-server)
+  #   - "local-npx" : Official TypeScript MCP servers via npx (filesystem, memory, sequential-thinking)
   #   - "local-uvx" : Python tools via uvx (decoupled from nixpkgs churn)
   #
-  # Use local-uvx for fast-moving AI/Python tools where nixpkgs lags
-  # behind upstream or has packaging issues (e.g., grep-mcp, serena).
+  # Prefer official TypeScript implementations via npx when available.
+  # Use local-uvx for Python tools where nixpkgs lags behind upstream.
   #
   # Fields:
   #   package     = pkgs.* (for local-nix servers)
-  #   command     = "uvx" (for local-uvx servers)
+  #   command     = "npx" | "uvx" (for local servers)
   #   type        = "remote" | "local"
   #   args        = [ ... ] (optional, for local servers)
   #   env         = { VAR = "value"; } (optional, for local servers)
+  #   headers     = { HEADER = "value"; } (optional, for remote servers)
   #   url         = "https://..." (required for remote servers)
   #   description = "Human-readable description"
 
@@ -40,9 +42,14 @@ let
 
     # Context7 - Documentation search for libraries and frameworks
     # Usage: Add "use context7" to your prompts
+    # API key provides higher rate limits (optional, loaded from environment)
     context7 = {
       type = "remote";
       url = "https://mcp.context7.com/mcp";
+      # OpenCode uses {env:VAR} syntax to read from environment at runtime
+      headers = {
+        CONTEXT7_API_KEY = "{env:CONTEXT7_API_KEY}";
+      };
       description = "Documentation search for libraries and frameworks";
     };
 
@@ -56,7 +63,7 @@ let
     };
 
     # --------------------------------------------------------
-    # Local MCP Servers (using mcp-servers-nix packages)
+    # Local MCP Servers
     # --------------------------------------------------------
 
     # Fetch - HTTP fetching capabilities
@@ -69,20 +76,22 @@ let
     # };
 
     # Filesystem - Local filesystem access
-    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
+    # Official TypeScript implementation from @modelcontextprotocol/server-filesystem
+    # Directories are passed as CLI arguments (multiple allowed)
     filesystem = {
       type = "local";
-      command = "uvx";
+      command = "npx";
       args = [
-        "mcp-server-filesystem"
+        "-y"
+        "@modelcontextprotocol/server-filesystem"
         "${config.home.homeDirectory}/Projects"
         "${config.home.homeDirectory}/Notes"
       ];
-      description = "Local filesystem access (Projects and Notes)";
+      description = "Local filesystem access (Projects & Notes directories)";
     };
 
     # Git - Git repository operations
-    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
+    # No official npm server published yet; use uvx Python server
     git = {
       type = "local";
       command = "uvx";
@@ -91,13 +100,17 @@ let
     };
 
     # Memory - Persistent memory/knowledge graph
-    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
+    # Official TypeScript implementation from @modelcontextprotocol/server-memory
+    # Uses MEMORY_FILE_PATH env var for custom storage location
     memory = {
       type = "local";
-      command = "uvx";
-      args = [ "mcp-server-memory" ];
+      command = "npx";
+      args = [
+        "-y"
+        "@modelcontextprotocol/server-memory"
+      ];
       env = {
-        MEMORY_FILE_PATH = "${config.home.homeDirectory}/Projects/mcp-memory/memory.json";
+        MEMORY_FILE_PATH = "${config.home.homeDirectory}/Utility/mcp-memory/memory.jsonl";
       };
       description = "Persistent memory and knowledge graph";
     };
@@ -122,11 +135,14 @@ let
     };
 
     # Sequential Thinking - Chain-of-thought reasoning
-    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
+    # Official TypeScript implementation from @modelcontextprotocol/server-sequential-thinking
     sequential-thinking = {
       type = "local";
-      command = "uvx";
-      args = [ "mcp-server-sequential-thinking" ];
+      command = "npx";
+      args = [
+        "-y"
+        "@modelcontextprotocol/server-sequential-thinking"
+      ];
       description = "Chain-of-thought reasoning";
     };
 
@@ -191,7 +207,7 @@ let
       lib.getExe server.package;
 
   # Transform for OpenCode format
-  # OpenCode uses: { "mcp": { "name": { type, command: [...], environment, enabled } } }
+  # OpenCode uses: { "mcp": { "name": { type, command: [...], environment, enabled, headers } } }
   toOpenCodeFormat =
     servers:
     lib.mapAttrs (
@@ -202,6 +218,9 @@ let
           url = server.url;
           enabled = server.enabled or true;
         }
+        // (lib.optionalAttrs (server ? headers && server.headers != { }) {
+          headers = server.headers;
+        })
       else
         {
           type = "local";
@@ -304,6 +323,11 @@ in
   # Configuration Generation
   # ============================================================
   config = lib.mkIf cfg.enable {
+    # Ensure memory storage directory exists across hosts
+    home.file."Utility/mcp-memory/.keep" = {
+      text = "";
+    };
+
     # Generate Claude Desktop config if enabled
     # Location: ~/Library/Application Support/Claude/claude_desktop_config.json
     home.file."Library/Application Support/Claude/claude_desktop_config.json" =
