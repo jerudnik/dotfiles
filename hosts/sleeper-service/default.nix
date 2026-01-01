@@ -23,6 +23,18 @@
   ];
 
   # ==========================================================================
+  # Intel GPU Workaround
+  # ==========================================================================
+  # Disable OpenCL compute runtime - intel-compute-runtime-legacy1 fails to
+  # build with current nixpkgs (CMake 4.0 incompatibility).
+  # Video acceleration (VAAPI) still works without this.
+  hardware.graphics.extraPackages = lib.mkForce [
+    pkgs.intel-media-driver # VAAPI for video decode/encode
+    pkgs.intel-vaapi-driver # Older VAAPI driver (backup)
+    pkgs.vpl-gpu-rt # Intel Quick Sync Video
+  ];
+
+  # ==========================================================================
   # Host Identity
   # ==========================================================================
   networking.hostName = "sleeper-service";

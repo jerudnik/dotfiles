@@ -1,9 +1,17 @@
 # Linux builder VM for cross-compilation
 # Provides on-demand Linux build capability for darwin machines
-# The VM is ephemeral - only runs when Linux builds are requested
+#
+# NOTE: nix.linux-builder requires nix.enable = true, which conflicts with
+# Determinate Nix (used in this repo). This module is currently a no-op.
+# For Linux builds from macOS, use one of these alternatives:
+#   1. OrbStack (recommended) - provides seamless Linux VM with Nix support
+#   2. UTM/QEMU - manual Linux VM setup
+#   3. Remote builder - SSH to a Linux machine (e.g., sleeper-service)
+#
+# TODO: Re-enable when Determinate Nix supports linux-builder, or switch
+# to using OrbStack/remote builders for Linux compilation.
 {
   config,
-  pkgs,
   lib,
   ...
 }:
@@ -17,42 +25,16 @@ in
     enable = mkEnableOption "Linux builder VM for cross-compilation";
   };
 
+  # Currently a no-op - nix.linux-builder requires nix.enable = true
+  # which conflicts with Determinate Nix
   config = mkIf cfg.enable {
-    nix.linux-builder = {
-      enable = true;
-
-      # Don't persist VM state - start fresh each time
-      ephemeral = true;
-
-      # Supported architectures
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
-
-      # VM resources - generous since it only runs on-demand
-      # Mac Studio M2 Ultra has 24 cores, allocate half to VM
-      config = {
-        virtualisation = {
-          cores = 12;
-          memorySize = 16384; # 16GB RAM
-          diskSize = 40960; # 40GB disk
-        };
-      };
-
-      # High speed factor = prefer this builder over slower alternatives
-      speedFactor = 10;
-
-      # Features this builder supports
-      supportedFeatures = [
-        "nixos-test"
-        "benchmark"
-        "big-parallel"
-        "kvm" # VM has nested virtualization
-      ];
-    };
-
-    # Allow the builder to use binary caches
-    nix.settings.builders-use-substitutes = true;
+    warnings = [
+      ''
+        services.linux-builder.enable is set but has no effect.
+        nix.linux-builder requires nix.enable = true, which conflicts
+        with Determinate Nix. Consider using OrbStack or a remote Linux
+        builder (e.g., ssh://john@sleeper-service) instead.
+      ''
+    ];
   };
 }

@@ -61,28 +61,25 @@
   # ============================================================
   # Remote Building
   # ============================================================
-  # Use Mac Studio as remote builder for faster builds and Linux support
-  nix.distributedBuilds = true;
-  nix.buildMachines = [
-    {
-      hostName = "serious-callers-only";
-      sshUser = "john";
-      sshKey = "/Users/jrudnik/.ssh/id_ed25519_sk";
-      systems = [
-        "aarch64-darwin"
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
-      maxJobs = 8;
-      speedFactor = 10;
-      supportedFeatures = [
-        "nixos-test"
-        "benchmark"
-        "big-parallel"
-      ];
-    }
-  ];
-  nix.extraOptions = ''
-    builders-use-substitutes = true
-  '';
+  # NOTE: Remote builder config requires nix.enable = true, which conflicts
+  # with Determinate Nix. To use serious-callers-only as a remote builder,
+  # configure it manually in /etc/nix/machines or use:
+  #   nix build --builders 'ssh://john@serious-callers-only'
+  #
+  # Once Determinate Nix supports distributed builds natively, we can
+  # enable this configuration:
+  #
+  # nix.distributedBuilds = true;
+  # nix.buildMachines = [{
+  #   hostName = "serious-callers-only";
+  #   sshUser = "john";
+  #   sshKey = "/Users/jrudnik/.ssh/id_ed25519_sk";
+  #   systems = [ "aarch64-darwin" "x86_64-linux" "aarch64-linux" ];
+  #   maxJobs = 8;
+  #   speedFactor = 10;
+  #   supportedFeatures = [ "nixos-test" "benchmark" "big-parallel" ];
+  # }];
+  # nix.extraOptions = ''
+  #   builders-use-substitutes = true
+  # '';
 }
