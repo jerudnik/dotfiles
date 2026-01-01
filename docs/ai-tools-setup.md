@@ -1,389 +1,114 @@
-# AI Tools Setup: OpenCode TUI with Yubikey-Backed Secrets
+# AI Tools Setup (Yubikey + sops-nix)
 
-## Overview
+Parsimony first: this is the minimal, accurate setup for OpenCode with Yubikey-backed secrets across macOS (nix-darwin) and NixOS.
 
-This document covers the setup of OpenCode TUI with Yubikey-backed secrets management using sops-nix. The private encryption key never leaves the Yubikey hardware, providing strong security for API keys and other secrets.
+## Prerequisites
+- Yubikey with PIV support
+- Nix flakes enabled; this repo cloned
+- Dev shell: `nix develop` (provides age-plugin-yubikey, yubikey-manager, sops, age)
 
-## Architecture
-
+## One-Time Yubikey + sops Setup
+1) Enter dev shell
+```bash
+cd ~/Projects/dotfiles
+nix develop
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Your Dotfiles                            │
-├─────────────────────────────────────────────────────────────────┤
-│  secrets/                                                       │
-│  ├── .sops.yaml          # Encryption rules (Yubikey public key)│
-│  └── secrets.yaml        # Encrypted secrets (safe to commit)   │
-│                                                                 │
-│  modules/darwin/secrets.nix      # sops-nix configuration       │
-│  modules/home/ai/opencode.nix    # OpenCode configuration       │
-│  modules/home/ai/environment.nix # Loads secrets into env vars  │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    darwin-rebuild switch                         │
-│                    (requires Yubikey touch)                      │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  /run/secrets/api_keys/opencode_zen   # Decrypted, owned by user│
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Shell startup (.zshrc) loads secret into OPENCODE_API_KEY      │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  OpenCode config uses: {env:OPENCODE_API_KEY}                   │
-└─────────────────────────────────────────────────────────────────┘
+2) Initialize Yubikey and save identity
+```bash
+age-plugin-yubikey           # run wizard
+mkdir -p ~/.config/sops/age
+age-plugin-yubikey --identity > ~/.config/sops/age/yubikey-identity.txt
+chmod 600 ~/.config/sops/age/yubikey-identity.txt
+```
+3) Add public key to `.sops.yaml`
+- Add the `age1yubikey...` key under `keys:` and in the `creation_rules` for `secrets.yaml`.
+
+4) Edit encrypted secrets (touch required)
+```bash
+cd secrets
+SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets.yaml
+```
+Add your keys, e.g.:
+```yaml
+api_keys:
+  opencode_zen: "op-api-key"
+  github_token: "ghp-..."
 ```
 
-## Module Structure
+## Declare Secrets (per host/user)
+Set owner per host to match the local username.
+```nix
+# hosts/mac-studio/default.nix (john)
+sops.secrets = {
+  "api_keys/opencode_zen" = { owner = "john"; mode = "0400"; };
+  "api_keys/github_token" = { owner = "john"; mode = "0400"; };
+};
 
+# hosts/just-testing/default.nix (jrudnik)
+sops.secrets = {
+  "api_keys/opencode_zen" = { owner = "jrudnik"; mode = "0400"; };
+};
 ```
-modules/
-├── darwin/
-│   └── secrets.nix        # sops-nix config (darwin level)
-└── home/
-    └── ai/
-        ├── default.nix    # Module index
-        ├── opencode.nix   # OpenCode package + config
-        └── environment.nix # Shell environment + aliases
+NixOS: declare in `modules/nixos/secrets.nix` (uses host-derived age key at `/var/lib/sops-nix/key.txt`).
+
+## Load Into Environment
+`modules/home/ai/environment.nix` loads secrets into shell on login:
+```nix
+programs.zsh.initExtra = ''
+  if [[ -r /run/secrets/api_keys/opencode_zen ]]; then
+    export OPENCODE_API_KEY="$(cat /run/secrets/api_keys/opencode_zen)"
+  fi
+'';
 ```
+Aliases: `oc` (opencode), `ai` (opencode run).
 
-## Key Files
+## Apply Configuration
+```bash
+# macOS
+apply  # or: sudo darwin-rebuild switch --flake .
 
-### `modules/darwin/secrets.nix`
+# NixOS
+sudo nixos-rebuild switch --flake .
+```
+Open a new terminal so env vars load.
 
-Configures sops-nix at the darwin (system) level:
-- Points to `secrets/secrets.yaml`
-- Uses Yubikey identity file for decryption
-- Declares secrets with owner/permissions for user access
-- Secrets decrypted to `/run/secrets/`
-
-### `modules/home/ai/opencode.nix`
-
-Configures OpenCode:
-- Installs the `opencode` package
-- Generates `~/.config/opencode/opencode.json`
-- References secrets via `{env:VARIABLE_NAME}` syntax
-- Configures MCP servers (Context7, etc.)
-
-### `modules/home/ai/environment.nix`
-
-Shell environment setup:
-- Loads secrets from `/run/secrets/` into environment variables at shell startup
-- Sets `OPENCODE_API_KEY` from the decrypted secret
-- Provides shell aliases (`oc`, `ai`)
-
-### `secrets/.sops.yaml`
-
-Defines encryption rules:
-- Lists authorized Yubikey public keys
-- Specifies which keys can decrypt which files
-
-## Adding New Secrets
-
-1. **Edit the encrypted secrets file** (requires Yubikey):
-   ```bash
-   cd ~/Projects/dotfiles/secrets
-   SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets.yaml
-   ```
-
-2. **Add your secret** in YAML format:
-   ```yaml
-   api_keys:
-     opencode_zen: "op-existing-key"
-     anthropic: "sk-ant-new-key"    # Add new key
-   ```
-
-3. **Declare the secret** in the host's darwin configuration (e.g., `hosts/mac-studio/default.nix` or `hosts/just-testing/default.nix`):
-    ```nix
-    # Example for Mac Studio (user: john)
-    sops.secrets = {
-      "api_keys/opencode_zen" = { owner = "john"; mode = "0400"; };
-      "api_keys/anthropic" = { owner = "john"; mode = "0400"; };
-    };
-
-    # Example for MacBook Air (user: jrudnik)
-    sops.secrets = {
-      "api_keys/opencode_zen" = { owner = "jrudnik"; mode = "0400"; };
-      "api_keys/anthropic" = { owner = "jrudnik"; mode = "0400"; };
-    };
-    ```
-
-    The `owner` must match the username on each host. Secret ownership is configured per-host since each machine may have different users.
-    ```
-
-4. **Load into environment** in `modules/home/ai/environment.nix`:
-   ```nix
-   programs.zsh.initExtra = ''
-     if [[ -r /run/secrets/api_keys/anthropic ]]; then
-       export ANTHROPIC_API_KEY="$(cat /run/secrets/api_keys/anthropic)"
-     fi
-   '';
-   ```
-
-5. **Reference in config** using environment variable:
-   ```nix
-   apiKey = "{env:ANTHROPIC_API_KEY}";
-   ```
-
-6. **Apply the configuration**:
-   ```bash
-   sudo darwin-rebuild switch --flake .
-   # Touch Yubikey when prompted
-   # Open new terminal to load environment variables
-   ```
-
-## Adding a Backup Yubikey
-
-1. **Set up the backup Yubikey**:
-   ```bash
-   age-plugin-yubikey  # Run wizard with backup key inserted
-   ```
-
-2. **Get the backup key's public key**:
-   ```bash
-   age-plugin-yubikey --list
-   ```
-
-3. **Add to `.sops.yaml`**:
-   ```yaml
-   keys:
-     - &john age1yubikey1q...primary...
-     - &john-backup age1yubikey1q...backup...
-   
-   creation_rules:
-     - path_regex: secrets\.yaml$
-       key_groups:
-         - age:
-             - *john
-             - *john-backup
-   ```
-
-4. **Re-encrypt secrets** with both keys:
-   ```bash
-   cd ~/Projects/dotfiles/secrets
-   SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops updatekeys secrets.yaml
-   ```
-
-## Cross-Platform Usage
-
-The same Yubikey works across machines:
-
-1. Copy identity file to new machine:
-   ```bash
-   scp ~/.config/sops/age/yubikey-identity.txt user@newhost:~/.config/sops/age/
-   ```
-   Or regenerate: `age-plugin-yubikey --identity > ~/.config/sops/age/yubikey-identity.txt`
-
-2. Install `age-plugin-yubikey` on the new machine
-
-3. Plug in your Yubikey - decryption works identically
-
-For NixOS hosts, use `sops-nix.nixosModules.sops` instead of `darwinModules.sops`.
-
-## Multi-User Support
-
-This repository supports multiple machines with different users:
-
-- **Mac Studio** (`mac-studio`): user `john`, home `/Users/john`
-- **MacBook Air** (`just-testing`): user `jrudnik`, home `/Users/jrudnik`
-
-### User-Specific Configuration
-
-The configuration automatically adapts to different users through:
-
-1. **Dynamic home directory resolution**:
-   ```nix
-   # modules/home/ai/environment.nix uses:
-   config.home.homeDirectory
-   ```
-   This resolves to `/Users/john` on Mac Studio and `/Users/jrudnik` on MacBook Air.
-
-2. **Per-host secret ownership**:
-   Each host's configuration declares secret ownership for its specific user:
-   ```nix
-   # hosts/mac-studio/default.nix
-   sops.secrets."api_keys/opencode_zen" = { owner = "john"; mode = "0400"; };
-
-    # hosts/just-testing/default.nix
-    sops.secrets."api_keys/opencode_zen" = { owner = "jrudnik"; mode = "0400"; };
+## Verify
+```bash
+echo $OPENCODE_API_KEY
+cat /run/secrets/api_keys/opencode_zen
+which opencode
+opencode --version
 ```
 
-3. **Shared configuration modules**:
-   - `modules/home/ai/opencode.nix` - OpenCode package and config (user-agnostic)
-   - `modules/home/ai/environment.nix` - Environment variable loading (uses dynamic paths)
-   - `modules/home/ai/mcp.nix` - MCP server definitions (shared across clients)
+## Environment Variables (need-to-know)
+- `OPENCODE_API_KEY` (secret) – from `/run/secrets/api_keys/opencode_zen`
+- `GITHUB_PERSONAL_ACCESS_TOKEN` (secret) – from `/run/secrets/api_keys/github_token`
+- `CONTEXT7_API_KEY` (secret) – from `/run/secrets/api_keys/context7`
+- `EXA_API_KEY` (secret) – from `/run/secrets/api_keys/exa`
+- `SOPS_AGE_KEY_FILE` – `~/.config/sops/age/yubikey-identity.txt`
+- `OLLAMA_HOST` – e.g. `http://100.x.y.z:11434` for remote Ollama
 
-### Adding a New Machine
+## MCP Servers (where to configure)
+- Definitions: `modules/home/ai/mcp.nix`
+- Types: `remote`, `local-nix`, `local-uvx` (preferred for Python tools)
+- Clients: enable in `modules/home/ai/default.nix`
+- Details remain in `docs/ai-tools-setup.md` (this file) and code; no duplicate blocks here.
 
-When adding a new host with a different user:
-
-1. Create the host configuration: `hosts/new-hostname/default.nix`
-2. Set secret ownership to the new user's username
-3. Apply configuration with `sudo darwin-rebuild switch --flake .#new-hostname`
-
-The shared modules automatically handle the rest through Nix's built-in user detection.
+## Walkthrough (condensed)
+1) `nix develop`
+2) `age-plugin-yubikey` → save identity file
+3) Add public key to `.sops.yaml`
+4) `sops secrets.yaml` → add `api_keys/opencode_zen`
+5) Declare secrets per host (owner correct)
+6) Apply: `apply` (macOS) or `nixos-rebuild switch`
+7) New terminal → verify env vars → run `oc`
 
 ## Troubleshooting
+- **"no identity matched"**: Yubikey plugged, identity file present, `.sops.yaml` contains your key.
+- **Secrets missing in /run/secrets**: verify declarations in `modules/darwin/secrets.nix` or `modules/nixos/secrets.nix`; re-apply.
+- **Env var empty**: open a new terminal; confirm file ownership matches user.
+- **Yubikey touch prompt absent**: ensure `IdentityAgent = "none"` per-host in `modules/home/ssh.nix`; use Nix openssh (`which ssh` → `/etc/profiles/per-user/.../ssh`).
 
-### "age: error: no identity matched any of the recipients"
-- Ensure Yubikey is plugged in
-- Verify identity file exists: `cat ~/.config/sops/age/yubikey-identity.txt`
-- Check public key matches `.sops.yaml`: `age-plugin-yubikey --list`
-
-### "please touch your YubiKey" hangs
-- Touch the metal contact on your Yubikey
-- If using USB-C, ensure good connection
-- Try removing and reinserting the Yubikey
-
-### Secrets not appearing in `/run/secrets/`
-- Check sops-nix service: `sudo launchctl list | grep sops`
-- Verify secrets are declared in `modules/darwin/secrets.nix`
-- Check system log for errors
-
-### OpenCode can't read API key
-- Open a **new terminal** to load environment variables
-- Verify env var is set: `echo $OPENCODE_API_KEY`
-- Check secret is readable: `cat /run/secrets/api_keys/opencode_zen`
-- Verify secret has correct owner: `ls -la /run/secrets/api_keys/` (should be owned by your user)
-
-### Environment variable not set
-- Ensure you opened a new terminal after `darwin-rebuild switch`
-- Check the secret file is readable by your user: `ls -la /run/secrets/api_keys/`
-- Verify `programs.zsh.initExtra` is loading the secret
-
-## MCP Servers (Model Context Protocol)
-
-MCP servers are configured centrally in `modules/home/ai/mcp.nix` and can be shared across multiple clients (OpenCode, Claude Desktop, Cursor).
-
-### Deployment Strategies
-
-Three deployment patterns for MCP servers:
-
-1. **remote** - Third-party hosted SSE endpoints
-   - Use when: External service with stable API
-   - Examples: context7 (documentation search), exa (web search)
-   - Works with: OpenCode only (SSE transport)
-
-2. **local-nix** - Stable Nix packages from nixpkgs
-   - Use when: Mature tool with stable packaging
-   - Examples: github-mcp-server
-   - Works with: All clients (stdio transport)
-
-3. **local-uvx** - Python tools via uvx (decoupled from nixpkgs)
-   - Use when: Fast-moving AI/Python tools where nixpkgs lags or has packaging issues
-   - Examples: filesystem, git, memory, nixos, sequential-thinking, time, grep-mcp, serena
-   - Requires: Network on first run (downloads package)
-   - Works with: All clients (stdio transport)
-
-The `mcp-servers-nix` flake input has been removed. All Python MCP servers are now deployed via uvx to avoid nixpkgs lag and Python 3.13 compatibility issues.
-
-The `local-uvx` pattern avoids nixpkgs churn by running tools directly from PyPI via uv's package runner. This is particularly useful for AI tools that update frequently or have complex Python dependencies. The first run requires network access to download the package, but subsequent runs use the cached version.
-
-### Adding a New MCP Server
-
-#### Remote Server
-
-```nix
-# In modules/home/ai/mcp.nix, add to mcpServerDefinitions:
-context7 = {
-  type = "remote";
-  url = "https://mcp.context7.com/mcp";
-  description = "Documentation search";
-};
-```
-
-#### Local Nix Package
-
-```nix
-# In modules/home/ai/mcp.nix, add to mcpServerDefinitions:
-github = {
-  type = "local";
-  package = pkgs.github-mcp-server;
-  args = [ "stdio" ];
-  env = { GITHUB_PERSONAL_ACCESS_TOKEN = "$GITHUB_PERSONAL_ACCESS_TOKEN"; };
-  description = "GitHub API integration";
-};
-```
-
-#### Local uvx Server
-
-Use this pattern for Python tools that update frequently or have nixpkgs packaging issues:
-
-```nix
-# In modules/home/ai/mcp.nix, add to mcpServerDefinitions:
-grep-app = {
-  type = "local";
-  command = "uvx";
-  args = [ "grep-mcp" ];
-  description = "GitHub code search via grep.app";
-};
-```
-
-For tools that need additional arguments:
-
-```nix
-serena = {
-  type = "local";
-  command = "uvx";
-  args = [
-    "--from" "git+https://github.com/oraios/serena"
-    "serena"
-    "start-mcp-server"
-    "--context" "claude-code"
-    "--project-from-cwd"
-    "--mode" "nix-focused"
-  ];
-  description = "Semantic code retrieval and editing via LSP";
-};
-```
-
-### Enabling Clients
-
-Enable client configs in `modules/home/ai/default.nix`:
-
-```nix
-services.mcp.enableClaudeDesktop = true;  # ~/Library/Application Support/Claude/
-services.mcp.enableCursor = true;          # ~/.cursor/mcp.json
-```
-
-OpenCode automatically uses the MCP servers configured in `modules/home/ai/opencode.nix`.
-
-### Migration from Nix Packages to uvx
-
-Python MCP servers were migrated from the `mcp-servers-nix` flake input to uvx deployment to resolve dependency issues:
-
-- **Python 3.13 compatibility**: nixpkgs still uses Python 3.12, causing compatibility issues with newer MCP packages
-- **nixpkgs lag**: Fast-moving AI tools often have new versions released before they reach nixpkgs
-- **Packaging overhead**: Maintaining Nix packages for every Python MCP tool is unsustainable
-
-The migration pattern for a typical server:
-
-Before (Nix package):
-```nix
-# Required mcp-servers-nix input and custom packages
-grep-app = {
-  type = "local";
-  package = pkgs.grep-mcp;
-  description = "GitHub code search via grep.app";
-};
-```
-
-After (uvx deployment):
-```nix
-# Direct from PyPI, no Nix packaging required
-grep-app = {
-  type = "local";
-  command = "uvx";
-  args = [ "grep-mcp" ];
-  description = "GitHub code search via grep.app";
-};
-```
-
-This approach removed the entire `mcp-servers-nix` flake input, allowing all Python MCP servers to use the latest versions from PyPI. The first run requires network access to download the package, but subsequent runs use the cached version.
+## Notes
+- Backup Yubikey: not configured here; set up later as separate task.
+- This doc supersedes the old `ai-environment-variables.md` (merged).
