@@ -44,13 +44,7 @@
     #   inputs.nixpkgs.follows = "nixpkgs";
     # };
 
-    # MCP servers as Nix packages (no npx at runtime)
-    mcp-servers-nix = {
-      url = "github:natsukium/mcp-servers-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # OpenCode source
+    # OpenCode - pinned to v1.0.204 for native skills support
     opencode = {
       url = "github:sst/opencode";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -72,7 +66,6 @@
       determinate,
       sops-nix,
       stylix,
-      mcp-servers-nix,
       opencode,
       emacs-overlay,
       ...

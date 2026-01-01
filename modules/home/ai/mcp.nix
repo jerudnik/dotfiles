@@ -1,5 +1,4 @@
 # Unified MCP (Model Context Protocol) servers configuration
-# Uses mcp-servers-nix for pre-built packages (no npx at runtime)
 # Generates configs for OpenCode, Claude Desktop, and Cursor
 {
   config,
@@ -12,18 +11,22 @@
 let
   cfg = config.services.mcp;
 
-  # Get mcp-servers-nix packages for the current system
-  # Some packages are now in nixpkgs directly (github-mcp-server, mcp-nixos, etc.)
-  mcpPkgs = inputs.mcp-servers-nix.packages.${pkgs.system};
-
   # ============================================================
   # MCP Server Definitions
   # ============================================================
-  # Define all your MCP servers here using mcp-servers-nix packages.
-  # These are pre-built Nix packages - no npx/npm at runtime!
+  # Define all your MCP servers here.
+  #
+  # Deployment strategies:
+  #   - "remote"    : Third-party hosted SSE endpoints (context7, exa)
+  #   - "local-nix" : Stable Nix packages from nixpkgs or mcp-servers-nix
+  #   - "local-uvx" : Python tools via uvx (decoupled from nixpkgs churn)
+  #
+  # Use local-uvx for fast-moving AI/Python tools where nixpkgs lags
+  # behind upstream or has packaging issues (e.g., grep-mcp, serena).
   #
   # Fields:
-  #   package     = mcpPkgs.mcp-server-* (required for local servers)
+  #   package     = pkgs.* (for local-nix servers)
+  #   command     = "uvx" (for local-uvx servers)
   #   type        = "remote" | "local"
   #   args        = [ ... ] (optional, for local servers)
   #   env         = { VAR = "value"; } (optional, for local servers)
@@ -66,10 +69,12 @@ let
     # };
 
     # Filesystem - Local filesystem access
+    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
     filesystem = {
       type = "local";
-      package = mcpPkgs.mcp-server-filesystem;
+      command = "uvx";
       args = [
+        "mcp-server-filesystem"
         "/Users/john/Projects"
         "/Users/john/Notes"
       ];
@@ -77,16 +82,20 @@ let
     };
 
     # Git - Git repository operations
+    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
     git = {
       type = "local";
-      package = mcpPkgs.mcp-server-git;
+      command = "uvx";
+      args = [ "mcp-server-git" ];
       description = "Git repository operations";
     };
 
     # Memory - Persistent memory/knowledge graph
+    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
     memory = {
       type = "local";
-      package = mcpPkgs.mcp-server-memory;
+      command = "uvx";
+      args = [ "mcp-server-memory" ];
       env = {
         MEMORY_FILE_PATH = "/Users/john/Projects/mcp-memory/memory.json";
       };
@@ -107,32 +116,39 @@ let
     };
 
     # NixOS - NixOS/Nix documentation and options search
-    # Now available in nixpkgs directly
+    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
     nixos = {
       type = "local";
-      package = pkgs.mcp-nixos;
+      command = "uvx";
+      args = [ "mcp-nixos" ];
       description = "NixOS documentation and options search";
     };
 
     # Sequential Thinking - Chain-of-thought reasoning
+    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
     sequential-thinking = {
       type = "local";
-      package = mcpPkgs.mcp-server-sequential-thinking;
+      command = "uvx";
+      args = [ "mcp-server-sequential-thinking" ];
       description = "Chain-of-thought reasoning";
     };
 
     # Time - Time and timezone utilities
+    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
     time = {
       type = "local";
-      package = mcpPkgs.mcp-server-time;
+      command = "uvx";
+      args = [ "mcp-server-time" ];
       description = "Time and timezone utilities";
     };
 
     # grep.app - GitHub code search across millions of public repos
     # No API key required
+    # Deployed via uvx to avoid nixpkgs python3Packages.mcp breakage
     grep-app = {
       type = "local";
-      package = pkgs.grep-mcp;
+      command = "uvx";
+      args = [ "grep-mcp" ];
       description = "GitHub code search via grep.app";
     };
 
