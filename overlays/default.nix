@@ -18,8 +18,8 @@ final: prev: {
   # Custom Packages
   # ============================================================
 
-  # grep.app MCP server for GitHub code search
-  grep-mcp = final.callPackage ../pkgs/grep-mcp.nix { };
+  # Add custom packages here as needed
+  # Example: my-package = final.callPackage ../pkgs/my-package.nix { };
 
   # Fix Tailscale build failure by disabling tests (flaky on macOS)
   tailscale = prev.tailscale.overrideAttrs (old: {

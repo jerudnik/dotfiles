@@ -150,6 +150,18 @@ themes.variant = "modus-operandi"  # Light theme
 
 MCP servers are configured centrally in `modules/home/ai/mcp.nix` and can be shared across multiple clients (OpenCode, Claude Desktop, Cursor).
 
+### Deployment Strategies
+
+Three deployment patterns for MCP servers:
+
+- **remote**: Third-party hosted SSE endpoints (context7, exa)
+- **local-nix**: Stable Nix packages from nixpkgs (github-mcp-server only)
+- **local-uvx**: Python tools via uvx, decoupled from nixpkgs churn (filesystem, git, memory, nixos, sequential-thinking, time, grep-app, serena)
+
+The `mcp-servers-nix` flake input has been removed. All Python MCP servers are now deployed via uvx to avoid nixpkgs lag and Python 3.13 compatibility issues.
+
+Use `local-uvx` for fast-moving AI/Python tools where nixpkgs lags behind upstream or has packaging issues. The first run requires network access to download the package, but subsequent runs use the cached version.
+
 ```nix
 # In mcp.nix, add servers to mcpServerDefinitions:
 mcpServerDefinitions = {
@@ -159,36 +171,40 @@ mcpServerDefinitions = {
     url = "https://mcp.context7.com/mcp";
     description = "Documentation search";
   };
-  
+
   # Exa - AI web search (remote, requires EXA_API_KEY)
   exa = {
     type = "remote";
     url = "https://mcp.exa.ai/mcp";
     description = "Exa AI web search";
   };
-  
-  # Local server with Nix package
-  grep-app = {
-    type = "local";
-    package = pkgs.grep-mcp;
-    description = "GitHub code search via grep.app";
-  };
-  
-  # Local server (works with all clients)
+
+  # Local server with Nix package (stable tools only)
   github = {
     type = "local";
     package = pkgs.github-mcp-server;
     args = [ "stdio" ];
     env = { GITHUB_PERSONAL_ACCESS_TOKEN = "$GITHUB_PERSONAL_ACCESS_TOKEN"; };
+    description = "GitHub API integration";
+  };
+
+  # Local server via uvx (Python tools)
+  grep-app = {
+    type = "local";
+    command = "uvx";
+    args = [ "grep-mcp" ];
+    description = "GitHub code search via grep.app";
   };
 };
 ```
 
- Enable client configs in `modules/home/ai/default.nix`:
- ```nix
- services.mcp.enableClaudeDesktop = true;  # ~/Library/Application Support/Claude/
- services.mcp.enableCursor = true;          # ~/.cursor/mcp.json
- ```
+Enable client configs in `modules/home/ai/default.nix`:
+```nix
+services.mcp.enableClaudeDesktop = true;  # ~/Library/Application Support/Claude/
+services.mcp.enableCursor = true;          # ~/.cursor/mcp.json
+```
+
+See `docs/ai-tools-setup.md` for detailed MCP documentation and examples.
 
 ## SSH (FIDO2 Yubikey Authentication)
 
@@ -278,8 +294,12 @@ Add to `modules/darwin/homebrew.nix` in the `homebrew.casks` list.
 
 ### Adding an MCP Server
 1. Add server definition to `modules/home/ai/mcp.nix` in `mcpServerDefinitions`
-2. If it needs an API key, add to secrets and load in `environment.nix`
-3. Apply - configs auto-generate for enabled clients
+2. Choose deployment strategy:
+   - `remote`: Third-party SSE endpoint (url only)
+   - `local-nix`: Stable Nix package with `package` parameter
+   - `local-uvx`: Python tool via uvx with `command = "uvx"`
+3. If it needs an API key, add to secrets and load in `environment.nix`
+4. Apply - configs auto-generate for enabled clients
 
 ## Important Notes
 

@@ -204,3 +204,133 @@ For NixOS hosts, use `sops-nix.nixosModules.sops` instead of `darwinModules.sops
 - Ensure you opened a new terminal after `darwin-rebuild switch`
 - Check the secret file is readable by your user (owner should be `john`)
 - Verify `programs.zsh.initExtra` is loading the secret
+
+## MCP Servers (Model Context Protocol)
+
+MCP servers are configured centrally in `modules/home/ai/mcp.nix` and can be shared across multiple clients (OpenCode, Claude Desktop, Cursor).
+
+### Deployment Strategies
+
+Three deployment patterns for MCP servers:
+
+1. **remote** - Third-party hosted SSE endpoints
+   - Use when: External service with stable API
+   - Examples: context7 (documentation search), exa (web search)
+   - Works with: OpenCode only (SSE transport)
+
+2. **local-nix** - Stable Nix packages from nixpkgs
+   - Use when: Mature tool with stable packaging
+   - Examples: github-mcp-server
+   - Works with: All clients (stdio transport)
+
+3. **local-uvx** - Python tools via uvx (decoupled from nixpkgs)
+   - Use when: Fast-moving AI/Python tools where nixpkgs lags or has packaging issues
+   - Examples: filesystem, git, memory, nixos, sequential-thinking, time, grep-mcp, serena
+   - Requires: Network on first run (downloads package)
+   - Works with: All clients (stdio transport)
+
+The `mcp-servers-nix` flake input has been removed. All Python MCP servers are now deployed via uvx to avoid nixpkgs lag and Python 3.13 compatibility issues.
+
+The `local-uvx` pattern avoids nixpkgs churn by running tools directly from PyPI via uv's package runner. This is particularly useful for AI tools that update frequently or have complex Python dependencies. The first run requires network access to download the package, but subsequent runs use the cached version.
+
+### Adding a New MCP Server
+
+#### Remote Server
+
+```nix
+# In modules/home/ai/mcp.nix, add to mcpServerDefinitions:
+context7 = {
+  type = "remote";
+  url = "https://mcp.context7.com/mcp";
+  description = "Documentation search";
+};
+```
+
+#### Local Nix Package
+
+```nix
+# In modules/home/ai/mcp.nix, add to mcpServerDefinitions:
+github = {
+  type = "local";
+  package = pkgs.github-mcp-server;
+  args = [ "stdio" ];
+  env = { GITHUB_PERSONAL_ACCESS_TOKEN = "$GITHUB_PERSONAL_ACCESS_TOKEN"; };
+  description = "GitHub API integration";
+};
+```
+
+#### Local uvx Server
+
+Use this pattern for Python tools that update frequently or have nixpkgs packaging issues:
+
+```nix
+# In modules/home/ai/mcp.nix, add to mcpServerDefinitions:
+grep-app = {
+  type = "local";
+  command = "uvx";
+  args = [ "grep-mcp" ];
+  description = "GitHub code search via grep.app";
+};
+```
+
+For tools that need additional arguments:
+
+```nix
+serena = {
+  type = "local";
+  command = "uvx";
+  args = [
+    "--from" "git+https://github.com/oraios/serena"
+    "serena"
+    "start-mcp-server"
+    "--context" "claude-code"
+    "--project-from-cwd"
+    "--mode" "nix-focused"
+  ];
+  description = "Semantic code retrieval and editing via LSP";
+};
+```
+
+### Enabling Clients
+
+Enable client configs in `modules/home/ai/default.nix`:
+
+```nix
+services.mcp.enableClaudeDesktop = true;  # ~/Library/Application Support/Claude/
+services.mcp.enableCursor = true;          # ~/.cursor/mcp.json
+```
+
+OpenCode automatically uses the MCP servers configured in `modules/home/ai/opencode.nix`.
+
+### Migration from Nix Packages to uvx
+
+Python MCP servers were migrated from the `mcp-servers-nix` flake input to uvx deployment to resolve dependency issues:
+
+- **Python 3.13 compatibility**: nixpkgs still uses Python 3.12, causing compatibility issues with newer MCP packages
+- **nixpkgs lag**: Fast-moving AI tools often have new versions released before they reach nixpkgs
+- **Packaging overhead**: Maintaining Nix packages for every Python MCP tool is unsustainable
+
+The migration pattern for a typical server:
+
+Before (Nix package):
+```nix
+# Required mcp-servers-nix input and custom packages
+grep-app = {
+  type = "local";
+  package = pkgs.grep-mcp;
+  description = "GitHub code search via grep.app";
+};
+```
+
+After (uvx deployment):
+```nix
+# Direct from PyPI, no Nix packaging required
+grep-app = {
+  type = "local";
+  command = "uvx";
+  args = [ "grep-mcp" ];
+  description = "GitHub code search via grep.app";
+};
+```
+
+This approach removed the entire `mcp-servers-nix` flake input, allowing all Python MCP servers to use the latest versions from PyPI. The first run requires network access to download the package, but subsequent runs use the cached version.
