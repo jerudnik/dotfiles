@@ -29,8 +29,20 @@
   programs.ssh = {
     enable = true;
 
+    # Disable auto-generated defaults (fixes deprecation warning)
+    enableDefaultConfig = false;
+
     # SSH host configurations
     matchBlocks = {
+      # ============================================================
+      # Wildcard defaults (explicit, replaces deprecated auto-defaults)
+      # ============================================================
+      "*" = {
+        extraOptions = {
+          AddKeysToAgent = "yes";
+        };
+      };
+
       # ============================================================
       # GitHub (SSH for git operations)
       # ============================================================
@@ -46,12 +58,12 @@
       };
 
       # ============================================================
-      # Mac Studio (seriousCallersOnly)
+      # Mac Studio (serious-callers-only)
       # ============================================================
 
       # Primary: Tailscale MagicDNS
-      "seriousCallersOnly" = {
-        hostname = "seriousCallersOnly";
+      "serious-callers-only" = {
+        hostname = "serious-callers-only";
         user = "john";
         identityFile = [ "~/.ssh/id_ed25519_sk" ];
         identitiesOnly = true;
@@ -61,8 +73,8 @@
       };
 
       # Fallback: Local network (mDNS/Bonjour)
-      "seriousCallersOnly.local" = {
-        hostname = "seriousCallersOnly.local";
+      "serious-callers-only.local" = {
+        hostname = "serious-callers-only.local";
         user = "john";
         identityFile = [ "~/.ssh/id_ed25519_sk" ];
         identitiesOnly = true;
@@ -72,12 +84,12 @@
       };
 
       # ============================================================
-      # MacBook Air (inOneEar)
+      # MacBook Air (just-testing)
       # ============================================================
 
       # Primary: Tailscale MagicDNS
-      "inOneEar" = {
-        hostname = "inOneEar";
+      "just-testing" = {
+        hostname = "just-testing";
         user = "jrudnik";
         identityFile = [ "~/.ssh/id_ed25519_sk" ];
         identitiesOnly = true;
@@ -87,8 +99,8 @@
       };
 
       # Fallback: Local network (mDNS/Bonjour)
-      "inOneEar.local" = {
-        hostname = "inOneEar.local";
+      "just-testing.local" = {
+        hostname = "just-testing.local";
         user = "jrudnik";
         identityFile = [ "~/.ssh/id_ed25519_sk" ];
         identitiesOnly = true;

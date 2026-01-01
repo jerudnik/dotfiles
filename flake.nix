@@ -121,6 +121,18 @@
         };
       };
 
+      # Binary cache configuration for faster builds
+      nixConfig = {
+        substituters = [
+          "https://cache.nixos.org"
+          "https://nix-community.cachix.org"
+        ];
+        trusted-public-keys = [
+          "cache.nixos.org-1:6NCHdD59X431o0gNypCz8Q4uWN73apakVujGOGc74Q="
+          "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        ];
+      };
+
       # Helper to create darwin system configurations
       mkDarwinSystem =
         {
@@ -208,16 +220,16 @@
       # ============================================================
       darwinConfigurations = {
         # Mac Studio - AI inference server and primary workstation
-        "seriousCallersOnly" = mkDarwinSystem {
-          hostname = "seriousCallersOnly";
+        "serious-callers-only" = mkDarwinSystem {
+          hostname = "serious-callers-only";
           hostPath = ./hosts/mac-studio;
           username = "john";
         };
 
         # MacBook Air - Work laptop
-        "inOneEar" = mkDarwinSystem {
-          hostname = "inOneEar";
-          hostPath = ./hosts/inOneEar;
+        "just-testing" = mkDarwinSystem {
+          hostname = "just-testing";
+          hostPath = ./hosts/just-testing;
           username = "jrudnik";
         };
       };

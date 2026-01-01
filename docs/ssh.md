@@ -110,8 +110,9 @@ Configures SSH client with host match blocks for multi-machine access.
 
 | Host | User | Primary | Fallback | Identity |
 |------|------|---------|----------|----------|
-| `seriousCallersOnly` | `john` | `seriousCallersOnly` | `seriousCallersOnly.local` | `~/.ssh/id_ed25519_sk` |
-| `inOneEar` | `jrudnik` | `inOneEar` | `inOneEar.local` | `~/.ssh/id_ed25519_sk` |
+| `serious-callers-only` | `john` | `serious-callers-only` | `serious-callers-only.local` | `~/.ssh/id_ed25519_sk` |
+| `just-testing` | `jrudnik` | `just-testing` | `just-testing.local` | `~/.ssh/id_ed25519_sk` |
+| `sleeper-service` | `john` | `sleeper-service` | `sleeper-service.local` | `~/.ssh/id_ed25519_sk` |
 
 #### Session Path
 
@@ -126,13 +127,16 @@ This ensures `/etc/profiles/per-user/john/bin/ssh` is found before `/usr/bin/ssh
 
 ```bash
 # Connect to Mac Studio (uses Tailscale)
-ssh seriousCallersOnly
+ssh serious-callers-only
 
 # Connect via local network (fallback)
-ssh seriousCallersOnly.local
+ssh serious-callers-only.local
 
 # Connect to MacBook Air
-ssh inOneEar
+ssh just-testing
+
+# Connect to Pixelbook
+ssh sleeper-service
 ```
 
 ## FIDO2 Yubikey SSH Keys
@@ -214,8 +218,9 @@ ssh -o StrictHostKeyChecking=no localhost
 
 | Machine | Hostname | User | Tailscale Name |
 |---------|----------|------|----------------|
-| Mac Studio | `seriousCallersOnly` | `john` | `seriousCallersOnly` |
-| MacBook Air | `inOneEar` | `jrudnik` | `inOneEar` |
+| Mac Studio | `serious-callers-only` | `john` | `serious-callers-only` |
+| MacBook Air | `just-testing` | `jrudnik` | `just-testing` |
+| Pixelbook | `sleeper-service` | `john` | `sleeper-service` |
 
 ### Tailscale Integration
 
@@ -226,10 +231,10 @@ Both machines are connected via Tailscale mesh VPN:
 tailscale ip -4
 
 # From MacBook Air, connect via Tailscale
-ssh seriousCallersOnly
+ssh serious-callers-only
 
 # From Mac Studio, connect via Tailscale
-ssh inOneEar
+ssh just-testing
 ```
 
 ### Local Network Fallback
@@ -238,8 +243,8 @@ If Tailscale is unavailable, mDNS/Bonjour provides local network discovery:
 
 ```bash
 # Connect via local network
-ssh seriousCallersOnly.local
-ssh inOneEar.local
+ssh serious-callers-only.local
+ssh just-testing.local
 ```
 
 ## Troubleshooting
@@ -318,7 +323,7 @@ tailscale status
 tailscale status --peers | grep "MagicDNS"
 
 # Fallback to local network
-ssh seriousCallersOnly.local
+ssh serious-callers-only.local
 ```
 
 ### Adding a new SSH key (additional user)

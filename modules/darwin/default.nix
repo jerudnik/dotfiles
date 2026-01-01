@@ -18,5 +18,6 @@
     ./services/tailscale.nix
     ./services/whisper.nix
     ./services/emacs.nix
+    ./services/linux-builder.nix
   ];
 }

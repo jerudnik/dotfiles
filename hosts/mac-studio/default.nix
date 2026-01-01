@@ -18,8 +18,15 @@
   system.primaryUser = "john";
 
   # Host-specific settings
-  networking.hostName = "seriousCallersOnly";
-  networking.computerName = "seriousCallersOnly";
+  networking.hostName = "serious-callers-only";
+  networking.computerName = "serious-callers-only";
+
+  # ============================================================
+  # Linux Builder (for cross-compilation and remote building)
+  # ============================================================
+  # Ephemeral VM that spins up on-demand for Linux builds
+  # Used by: sleeper-service (NixOS), other darwin machines needing Linux pkgs
+  services.linux-builder.enable = true;
 
   # User configuration
   users.users.john = {

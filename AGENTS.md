@@ -33,8 +33,8 @@ hosts/
   common/
     darwin/default.nix       # Shared darwin config (all macOS hosts)
     nixos/default.nix        # Shared NixOS config (placeholder)
-  mac-studio/default.nix     # Host: seriousCallersOnly (Mac Studio)
-  inOneEar/default.nix       # Host: inOneEar (MacBook Air)
+  mac-studio/default.nix     # Host: serious-callers-only (Mac Studio)
+  just-testing/default.nix   # Host: just-testing (MacBook Air)
 modules/
   base/
     stylix.nix               # Theming configuration (cross-platform)
@@ -268,13 +268,15 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets/secrets.y
 ### Multi-Machine Access
 
 Pre-configured hosts:
-- `seriousCallersOnly` / `seriousCallersOnly.local` (Mac Studio, user `john`)
-- `inOneEar` / `inOneEar.local` (MacBook Air, user `jrudnik`)
+- `serious-callers-only` / `serious-callers-only.local` (Mac Studio, user `john`)
+- `just-testing` / `just-testing.local` (MacBook Air, user `jrudnik`)
+- `sleeper-service` / `sleeper-service.local` (Pixelbook, user `john`)
 
 Connect via Tailscale (primary) or local network (fallback):
 ```bash
-ssh seriousCallersOnly
-ssh inOneEar
+ssh serious-callers-only
+ssh just-testing
+ssh sleeper-service
 ```
 
 ## Common Patterns

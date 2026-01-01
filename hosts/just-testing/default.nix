@@ -18,8 +18,8 @@
   system.primaryUser = "jrudnik";
 
   # Host-specific settings
-  networking.hostName = "inOneEar";
-  networking.computerName = "inOneEar";
+  networking.hostName = "just-testing";
+  networking.computerName = "just-testing";
 
   # User configuration
   users.users.jrudnik = {
@@ -52,9 +52,37 @@
   # AI Services - DISABLED on MacBook Air
   # ============================================================
   # This machine does not run local AI models
-  # Use AI tools that connect to seriousCallersOnly or remote APIs
+  # Use AI tools that connect to serious-callers-only or remote APIs
 
   services.exo.enable = false;
   services.ollama.enable = false;
   services.whisper.enable = false;
+
+  # ============================================================
+  # Remote Building
+  # ============================================================
+  # Use Mac Studio as remote builder for faster builds and Linux support
+  nix.distributedBuilds = true;
+  nix.buildMachines = [
+    {
+      hostName = "serious-callers-only";
+      sshUser = "john";
+      sshKey = "/Users/jrudnik/.ssh/id_ed25519_sk";
+      systems = [
+        "aarch64-darwin"
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
+      maxJobs = 8;
+      speedFactor = 10;
+      supportedFeatures = [
+        "nixos-test"
+        "benchmark"
+        "big-parallel"
+      ];
+    }
+  ];
+  nix.extraOptions = ''
+    builders-use-substitutes = true
+  '';
 }

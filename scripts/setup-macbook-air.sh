@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# MacBook Air (inOneEar) Setup Script
+# MacBook Air (just-testing) Setup Script
 # ============================================================================
 # This script bootstraps the MacBook Air with the nix-darwin configuration
 # from the dotfiles repository. It's designed to be run interactively with
@@ -303,7 +303,7 @@ fi
 step_header 6 $TOTAL_STEPS "Apply nix-darwin Configuration"
 
 echo "This step will:"
-echo "  • Apply the inOneEar (MacBook Air) configuration"
+echo "  • Apply the just-testing (MacBook Air) configuration"
 echo "  • Install all packages and configure the system"
 echo "  • Set up shell, terminal, editors, and more"
 echo ""
@@ -319,7 +319,7 @@ prompt_continue
 info "Running darwin-rebuild switch..."
 echo ""
 
-if sudo darwin-rebuild switch --flake .#inOneEar; then
+if sudo darwin-rebuild switch --flake .#just-testing; then
     success "nix-darwin configuration applied successfully!"
 else
     error "darwin-rebuild failed"
@@ -369,6 +369,6 @@ echo "  2. Enter the dev shell: cd ~/Projects/dotfiles && nix develop"
 echo "  3. Future applies: just run 'apply' from the dev shell"
 echo ""
 echo "To connect to Mac Studio:"
-echo "  ssh seriousCallersOnly"
+echo "  ssh serious-callers-only"
 echo ""
 echo "Enjoy your new setup! 🎉"

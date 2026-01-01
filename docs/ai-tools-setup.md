@@ -100,7 +100,7 @@ Defines encryption rules:
      anthropic: "sk-ant-new-key"    # Add new key
    ```
 
-3. **Declare the secret** in the host's darwin configuration (e.g., `hosts/mac-studio/default.nix` or `hosts/inOneEar/default.nix`):
+3. **Declare the secret** in the host's darwin configuration (e.g., `hosts/mac-studio/default.nix` or `hosts/just-testing/default.nix`):
     ```nix
     # Example for Mac Studio (user: john)
     sops.secrets = {
@@ -192,7 +192,7 @@ For NixOS hosts, use `sops-nix.nixosModules.sops` instead of `darwinModules.sops
 This repository supports multiple machines with different users:
 
 - **Mac Studio** (`mac-studio`): user `john`, home `/Users/john`
-- **MacBook Air** (`inOneEar`): user `jrudnik`, home `/Users/jrudnik`
+- **MacBook Air** (`just-testing`): user `jrudnik`, home `/Users/jrudnik`
 
 ### User-Specific Configuration
 
@@ -211,9 +211,9 @@ The configuration automatically adapts to different users through:
    # hosts/mac-studio/default.nix
    sops.secrets."api_keys/opencode_zen" = { owner = "john"; mode = "0400"; };
 
-   # hosts/inOneEar/default.nix
-   sops.secrets."api_keys/opencode_zen" = { owner = "jrudnik"; mode = "0400"; };
-   ```
+    # hosts/just-testing/default.nix
+    sops.secrets."api_keys/opencode_zen" = { owner = "jrudnik"; mode = "0400"; };
+```
 
 3. **Shared configuration modules**:
    - `modules/home/ai/opencode.nix` - OpenCode package and config (user-agnostic)
