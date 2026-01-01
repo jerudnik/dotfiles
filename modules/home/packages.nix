@@ -48,7 +48,7 @@
     # ============================================================
     curl
     wget
-    httpie # User-friendly HTTP client
+
     openssh # SSH with FIDO2/Yubikey support (replaces macOS built-in)
 
     # ============================================================
@@ -78,9 +78,9 @@
     # ============================================================
     # Miscellaneous
     # ============================================================
-    tldr # Simplified man pages with examples
+    tealdeer # Fast tldr client in Rust (simplified man pages)
     just # Modern make alternative
-    papis # Command-line document and bibliography manager
+
   ];
 
   # Direnv integration with nix
