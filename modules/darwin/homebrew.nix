@@ -32,9 +32,6 @@
     # CLI tools installed via Homebrew
     # (Prefer nixpkgs when available, use brew if a package isn't available for macOS)
     brews = [
-      # Required for exo - hardware monitoring on Apple Silicon
-      "macmon"
-
       # Emacs - using emacs-plus for best macOS integration
       {
         name = "d12frosted/emacs-plus/emacs-plus@30";

@@ -54,7 +54,6 @@
   # This machine does not run local AI models
   # Use AI tools that connect to serious-callers-only or remote APIs
 
-  services.exo.enable = false;
   services.ollama.enable = false;
   services.whisper.enable = false;
 

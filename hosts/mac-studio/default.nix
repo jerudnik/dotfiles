@@ -39,9 +39,6 @@
   # AI Inference Services
   # ============================================================
 
-  # Disable exo for now (using Ollama instead)
-  services.exo.enable = false;
-
   # Ollama - LLM inference server
   services.ollama = {
     enable = true;
