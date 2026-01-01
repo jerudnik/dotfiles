@@ -75,8 +75,8 @@ let
       command = "uvx";
       args = [
         "mcp-server-filesystem"
-        "/Users/john/Projects"
-        "/Users/john/Notes"
+        "${config.home.homeDirectory}/Projects"
+        "${config.home.homeDirectory}/Notes"
       ];
       description = "Local filesystem access (Projects and Notes)";
     };
@@ -97,7 +97,7 @@ let
       command = "uvx";
       args = [ "mcp-server-memory" ];
       env = {
-        MEMORY_FILE_PATH = "/Users/john/Projects/mcp-memory/memory.json";
+        MEMORY_FILE_PATH = "${config.home.homeDirectory}/Projects/mcp-memory/memory.json";
       };
       description = "Persistent memory and knowledge graph";
     };

@@ -33,7 +33,8 @@ hosts/
   common/
     darwin/default.nix       # Shared darwin config (all macOS hosts)
     nixos/default.nix        # Shared NixOS config (placeholder)
-  mac-studio/default.nix     # Host-specific config
+  mac-studio/default.nix     # Host: seriousCallersOnly (Mac Studio)
+  inOneEar/default.nix       # Host: inOneEar (MacBook Air)
 modules/
   base/
     stylix.nix               # Theming configuration (cross-platform)
@@ -56,7 +57,9 @@ modules/
      development.nix          # Dev tools and runtimes
      python-tools.nix         # Python-specific tooling
 users/john/
-  home.nix                   # User home-manager entry point
+  home.nix                   # Mac Studio user home-manager config
+users/jrudnik/
+  home.nix                   # MacBook Air user home-manager config
 themes/
   modus.nix                  # Base16 color schemes
 secrets/

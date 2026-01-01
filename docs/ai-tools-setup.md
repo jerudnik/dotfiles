@@ -27,7 +27,7 @@ This document covers the setup of OpenCode TUI with Yubikey-backed secrets manag
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  /run/secrets/api_keys/opencode_zen   # Decrypted, owned by john│
+│  /run/secrets/api_keys/opencode_zen   # Decrypted, owned by user│
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -100,13 +100,23 @@ Defines encryption rules:
      anthropic: "sk-ant-new-key"    # Add new key
    ```
 
-3. **Declare the secret** in `modules/darwin/secrets.nix`:
-   ```nix
-   sops.secrets = {
-     "api_keys/opencode_zen" = { owner = "john"; mode = "0400"; };
-     "api_keys/anthropic" = { owner = "john"; mode = "0400"; };
-   };
-   ```
+3. **Declare the secret** in the host's darwin configuration (e.g., `hosts/mac-studio/default.nix` or `hosts/inOneEar/default.nix`):
+    ```nix
+    # Example for Mac Studio (user: john)
+    sops.secrets = {
+      "api_keys/opencode_zen" = { owner = "john"; mode = "0400"; };
+      "api_keys/anthropic" = { owner = "john"; mode = "0400"; };
+    };
+
+    # Example for MacBook Air (user: jrudnik)
+    sops.secrets = {
+      "api_keys/opencode_zen" = { owner = "jrudnik"; mode = "0400"; };
+      "api_keys/anthropic" = { owner = "jrudnik"; mode = "0400"; };
+    };
+    ```
+
+    The `owner` must match the username on each host. Secret ownership is configured per-host since each machine may have different users.
+    ```
 
 4. **Load into environment** in `modules/home/ai/environment.nix`:
    ```nix
@@ -177,6 +187,49 @@ The same Yubikey works across machines:
 
 For NixOS hosts, use `sops-nix.nixosModules.sops` instead of `darwinModules.sops`.
 
+## Multi-User Support
+
+This repository supports multiple machines with different users:
+
+- **Mac Studio** (`mac-studio`): user `john`, home `/Users/john`
+- **MacBook Air** (`inOneEar`): user `jrudnik`, home `/Users/jrudnik`
+
+### User-Specific Configuration
+
+The configuration automatically adapts to different users through:
+
+1. **Dynamic home directory resolution**:
+   ```nix
+   # modules/home/ai/environment.nix uses:
+   config.home.homeDirectory
+   ```
+   This resolves to `/Users/john` on Mac Studio and `/Users/jrudnik` on MacBook Air.
+
+2. **Per-host secret ownership**:
+   Each host's configuration declares secret ownership for its specific user:
+   ```nix
+   # hosts/mac-studio/default.nix
+   sops.secrets."api_keys/opencode_zen" = { owner = "john"; mode = "0400"; };
+
+   # hosts/inOneEar/default.nix
+   sops.secrets."api_keys/opencode_zen" = { owner = "jrudnik"; mode = "0400"; };
+   ```
+
+3. **Shared configuration modules**:
+   - `modules/home/ai/opencode.nix` - OpenCode package and config (user-agnostic)
+   - `modules/home/ai/environment.nix` - Environment variable loading (uses dynamic paths)
+   - `modules/home/ai/mcp.nix` - MCP server definitions (shared across clients)
+
+### Adding a New Machine
+
+When adding a new host with a different user:
+
+1. Create the host configuration: `hosts/new-hostname/default.nix`
+2. Set secret ownership to the new user's username
+3. Apply configuration with `sudo darwin-rebuild switch --flake .#new-hostname`
+
+The shared modules automatically handle the rest through Nix's built-in user detection.
+
 ## Troubleshooting
 
 ### "age: error: no identity matched any of the recipients"
@@ -198,11 +251,11 @@ For NixOS hosts, use `sops-nix.nixosModules.sops` instead of `darwinModules.sops
 - Open a **new terminal** to load environment variables
 - Verify env var is set: `echo $OPENCODE_API_KEY`
 - Check secret is readable: `cat /run/secrets/api_keys/opencode_zen`
-- Verify secret has correct owner: `ls -la /run/secrets/api_keys/`
+- Verify secret has correct owner: `ls -la /run/secrets/api_keys/` (should be owned by your user)
 
 ### Environment variable not set
 - Ensure you opened a new terminal after `darwin-rebuild switch`
-- Check the secret file is readable by your user (owner should be `john`)
+- Check the secret file is readable by your user: `ls -la /run/secrets/api_keys/`
 - Verify `programs.zsh.initExtra` is loading the secret
 
 ## MCP Servers (Model Context Protocol)
