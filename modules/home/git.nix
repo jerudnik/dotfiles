@@ -13,6 +13,12 @@
     # Disable version check warning (using stable nixpkgs with unstable HM)
     # (This is set at home level, see users/john/home.nix)
 
+    # SSH commit signing with Yubikey
+    signing = {
+      key = "~/.ssh/id_ed25519_sk.pub";
+      signByDefault = true;
+    };
+
     # Git settings (new format for home-manager)
     settings = {
       # User identity
@@ -20,6 +26,10 @@
         name = "john rudnik";
         email = "john.rudnik@gmail.com";
       };
+
+      # SSH signing configuration (Yubikey FIDO2)
+      gpg.format = "ssh";
+      gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
 
       # Default branch name
       init.defaultBranch = "main";

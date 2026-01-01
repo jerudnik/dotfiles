@@ -103,15 +103,12 @@ let
     };
 
     # GitHub - GitHub API integration
-    # Requires: GITHUB_PERSONAL_ACCESS_TOKEN in environment
-    # Now available in nixpkgs directly
+    # Requires: GITHUB_PERSONAL_ACCESS_TOKEN in environment (set by environment.nix)
+    # Server inherits env vars from shell - do NOT set env here (OpenCode doesn't expand $VAR)
     github = {
       type = "local";
       package = pkgs.github-mcp-server;
       args = [ "stdio" ];
-      env = {
-        GITHUB_PERSONAL_ACCESS_TOKEN = "$GITHUB_PERSONAL_ACCESS_TOKEN";
-      };
       description = "GitHub API integration";
     };
 

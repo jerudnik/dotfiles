@@ -5,6 +5,7 @@
   imports = [
     ./system.nix
     ./security.nix
+    ./secrets.nix
     ./desktop
   ];
 }
