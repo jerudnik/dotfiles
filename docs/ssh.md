@@ -198,3 +198,4 @@ echo "test" | ssh-keygen -Y sign -f ~/.ssh/secretive.pub -n git
 - Server: `modules/darwin/services/sshd.nix`
 - Secrets: `secrets/secrets.yaml`, `modules/{darwin,nixos}/secrets.nix`
 - Git signing: `modules/home/git.nix`
+- Automation and builder key usage: `docs/automation.md`

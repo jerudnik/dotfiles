@@ -29,6 +29,14 @@
       "build-time-fetch-tree"
       "parallel-eval"
     ];
+
+    # Harmonia cache (mac-studio)
+    extra-substituters = [
+      "http://serious-callers-only:5000"
+    ];
+    extra-trusted-public-keys = [
+      "serious-callers-only-1:J/+Orh0qfTKuVEm//2bA0bXKnTmXGjT02FHu9AK9IxU="
+    ];
   };
 
   # Enable Touch ID for sudo authentication

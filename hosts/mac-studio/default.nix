@@ -65,6 +65,13 @@
     ];
   };
 
+  # Harmonia binary cache
+  services.harmonia = {
+    enable = true;
+    signKeyPath = config.sops.secrets."harmonia/signing_key".path;
+    # bind/priority defaults set in module
+  };
+
   # ============================================================
   # Editor Services
   # ============================================================

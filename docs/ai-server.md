@@ -43,6 +43,7 @@ On a client machine:
 export OLLAMA_HOST=http://100.x.y.z:11434   # Tailscale IP of Mac Studio
 ollama list
 ```
+See `docs/ai-tools-setup.md` for client setup, secrets, and MCP integration that consumes this endpoint.
 
 ## Open WebUI (OrbStack/Docker)
 ```bash

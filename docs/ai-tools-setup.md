@@ -2,6 +2,15 @@
 
 Parsimony first: this is the minimal, accurate setup for OpenCode with Yubikey-backed secrets across macOS (nix-darwin) and NixOS.
 
+## Quick Start (checklist)
+1) `nix develop`
+2) `age-plugin-yubikey` → save identity to `~/.config/sops/age/yubikey-identity.txt`
+3) Add public key to `.sops.yaml` (keys + creation_rules)
+4) `SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets.yaml` → add `api_keys/*`
+5) Declare secrets per host (owner matches user)
+6) Apply: `apply` (macOS) or `sudo nixos-rebuild switch --flake .`
+7) New terminal → verify `OPENCODE_API_KEY` and `opencode --version`
+
 ## Prerequisites
 - Yubikey with PIV support
 - Nix flakes enabled; this repo cloned
@@ -86,7 +95,7 @@ opencode --version
 - `CONTEXT7_API_KEY` (secret) – from `/run/secrets/api_keys/context7`
 - `EXA_API_KEY` (secret) – from `/run/secrets/api_keys/exa`
 - `SOPS_AGE_KEY_FILE` – `~/.config/sops/age/yubikey-identity.txt`
-- `OLLAMA_HOST` – e.g. `http://100.x.y.z:11434` for remote Ollama
+- `OLLAMA_HOST` – e.g. `http://100.x.y.z:11434` for remote Ollama (see `docs/ai-server.md`)
 
 ## MCP Servers (where to configure)
 - Definitions: `modules/home/ai/mcp.nix`
@@ -95,18 +104,9 @@ opencode --version
   - `local-nix`: Stable Nix packages from nixpkgs (github-mcp-server)
   - `local-npx`: Official TypeScript MCP servers via npx (filesystem, memory, sequential-thinking)
   - `local-uvx`: Python tools via uvx (mcp-nixos, grep-mcp, serena)
-- Prefer official TypeScript implementations (`@modelcontextprotocol/*`) via `npx --yes` when available
+- Preferred hierarchy: `local-npx` (official TypeScript) → `local-nix` → `local-uvx` (Python)
 - Default memory storage: `~/Utility/mcp-memory/memory.jsonl` (directory ensured by the config)
 - Clients: enable in `modules/home/ai/default.nix`
-
-## Walkthrough (condensed)
-1) `nix develop`
-2) `age-plugin-yubikey` → save identity file
-3) Add public key to `.sops.yaml`
-4) `sops secrets.yaml` → add `api_keys/opencode_zen`
-5) Declare secrets per host (owner correct)
-6) Apply: `apply` (macOS) or `nixos-rebuild switch`
-7) New terminal → verify env vars → run `oc`
 
 ## Troubleshooting
 - **"no identity matched"**: Yubikey plugged, identity file present, `.sops.yaml` contains your key.

@@ -81,6 +81,13 @@
       "ssh/authorized_key_yubikey" = {
         mode = "0444"; # World-readable (it's a public key)
       };
+
+      # Harmonia signing key (private)
+      "harmonia/signing_key" = {
+        owner = "root";
+        group = "wheel";
+        mode = "0400";
+      };
     };
   };
 

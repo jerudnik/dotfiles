@@ -33,7 +33,7 @@ There are no tests in this repository. Validation is done via `nix flake check` 
   - `sleeper-service/default.nix` (Pixelbook, NixOS)
 - `modules/`
   - `base/` – stylix
-  - `darwin/` – system, homebrew, secrets, services (ollama, whisper, tailscale, sshd, emacs, linux-builder)
+  - `darwin/` – system, homebrew, secrets, services (ollama, whisper, tailscale, sshd, emacs, harmonia, linux-builder)
   - `nixos/` – desktop (hyprland, launcher, lock, notifications, waybar), security, system, secrets
   - `home/` – ai, apps (incl. linux), editors, shell, terminal, git, packages, ssh, development
 - `users/{john,jrudnik}/` – user home-manager configs
@@ -59,7 +59,8 @@ There are no tests in this repository. Validation is done via `nix flake check` 
 ## MCP Servers (summary)
 
 - Definitions: `modules/home/ai/mcp.nix`
-- Types: `remote`, `local-nix`, `local-uvx` (preferred for fast Python tools)
+- Types: `remote`, `local-npx` (official TypeScript), `local-nix`, `local-uvx` (Python)
+- Preferred hierarchy: `local-npx` (official TS) → `local-nix` → `local-uvx` (Python tools)
 - Clients: enable in `modules/home/ai/default.nix`
 - Details and examples: `docs/ai-tools-setup.md`
 
