@@ -11,5 +11,7 @@
     ./zsh.nix
     ./starship.nix
     ./aliases.nix
+    ./atuin.nix
+    ./navi.nix
   ];
 }

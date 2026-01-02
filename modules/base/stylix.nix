@@ -21,9 +21,12 @@ let
     else
       modusSchemes.vivendi;
   fontPackages = [
-    pkgs.nerd-fonts.im-writing
+    pkgs.ia-writer-mono
+    pkgs.ia-writer-duospace
+    pkgs.ia-writer-quattro
     pkgs.ibm-plex
     pkgs.noto-fonts-color-emoji
+    pkgs.phosphor-icons
   ];
 in
 {
@@ -52,12 +55,12 @@ in
           name = "IBM Plex Serif";
         };
         sansSerif = {
-          package = pkgs.nerd-fonts.im-writing;
-          name = "iMWritingQuattro Nerd Font";
+          package = pkgs.ia-writer-quattro;
+          name = "iA Writer Quattro";
         };
         monospace = {
-          package = pkgs.nerd-fonts.im-writing;
-          name = "iMWritingMono Nerd Font";
+          package = pkgs.ia-writer-mono;
+          name = "iA Writer Mono";
         };
         emoji = {
           package = pkgs.noto-fonts-color-emoji;
@@ -65,7 +68,7 @@ in
         };
         sizes = {
           applications = 12;
-          terminal = 15; # 15 * 4/3 = 20 on macOS (avoids float warning)
+          terminal = 13;
         };
       };
       opacity.terminal = lib.mkDefault 0.95;

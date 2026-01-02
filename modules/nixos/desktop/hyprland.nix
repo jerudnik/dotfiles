@@ -21,7 +21,7 @@ in
 
     # Required packages
     environment.systemPackages = with pkgs; [
-      wezterm
+      ghostty
       wl-clipboard
       grim
       slurp

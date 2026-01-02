@@ -140,6 +140,11 @@
       # Quick edit config files
       erc() { $EDITOR ~/dotfiles/users/john/home.nix }
       ezsh() { $EDITOR ~/dotfiles/modules/home/shell/zsh.nix }
+
+      # Ghostty shell integration (after other plugins)
+      if [[ -n $GHOSTTY_RESOURCES_DIR ]]; then
+        source "$GHOSTTY_RESOURCES_DIR/shell-integration/zsh/ghostty-integration"
+      fi
     '';
 
     # Plugins (using home-manager's plugin system)
@@ -152,6 +157,11 @@
           rev = "v1.1.2";
           sha256 = "sha256-Qv8zAiMtrr67CbLRrFjGaPzFZcOiMVEFLg1Z+N6VMhg=";
         };
+      }
+      {
+        name = "you-should-use";
+        src = pkgs.zsh-you-should-use;
+        file = "share/zsh/plugins/you-should-use/you-should-use.plugin.zsh";
       }
     ];
   };

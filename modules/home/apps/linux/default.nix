@@ -31,6 +31,9 @@ with lib;
     imv # Image viewer
     mpv # Video player
 
+    # Chat
+    beeper
+
     # System utilities
     pavucontrol # Audio control
     networkmanagerapplet # Network management

@@ -107,18 +107,25 @@
         });
       };
 
-      # Common special args passed to all modules
-      mkSpecialArgs = system: {
-        inherit inputs self;
-        pkgs = import nixpkgs {
+      # Overlay list per system
+      mkOverlays = system: [
+        customOverlay
+        (opencodeOverlay system)
+        emacs-overlay.overlays.default
+      ];
+
+      # Shared pkgs constructor
+      mkPkgs =
+        system:
+        import nixpkgs {
           inherit system;
           config.allowUnfree = true;
-          overlays = [
-            customOverlay
-            (opencodeOverlay system)
-            emacs-overlay.overlays.default
-          ];
+          overlays = mkOverlays system;
         };
+
+      # Common special args passed to all modules (omit pkgs to avoid specialArgs.pkgs assertion)
+      mkSpecialArgs = _system: {
+        inherit inputs self;
       };
 
       # Binary cache configuration for faster builds
@@ -144,6 +151,12 @@
           system = "aarch64-darwin";
           specialArgs = mkSpecialArgs "aarch64-darwin";
           modules = [
+            # Provide pkgs explicitly for this system; clear nixpkgs.config since pkgs is external
+            {
+              nixpkgs.pkgs = mkPkgs "aarch64-darwin";
+              nixpkgs.config = { };
+            }
+
             # Determinate Nix module
             determinate.darwinModules.default
 
@@ -191,6 +204,9 @@
           inherit system;
           specialArgs = mkSpecialArgs system;
           modules = [
+            # Provide pkgs explicitly for this system
+            { nixpkgs.pkgs = mkPkgs system; }
+
             # Stylix theming
             stylix.nixosModules.stylix
 

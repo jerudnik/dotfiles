@@ -18,6 +18,8 @@ final: prev: {
   # Custom Packages
   # ============================================================
 
+  phosphor-icons = final.callPackage ../pkgs/phosphor-icons.nix { };
+
   # Add custom packages here as needed
   # Example: my-package = final.callPackage ../pkgs/my-package.nix { };
 

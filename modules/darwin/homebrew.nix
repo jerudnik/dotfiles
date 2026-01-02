@@ -46,29 +46,14 @@
 
     # GUI applications
     casks = [
-      # Terminal
-      "ghostty" # GPU-accelerated terminal
-
-      # Web browser
-      "helium-browser" # Chromium-based browser du jour
-
-      # Containers
-      "orbstack" # Docker Desktop alternative (lightweight, native ARM)
-
-      # ============================================================
-      # macOS-specific QoL apps
-      # ============================================================
-      # Media
-      "iina" # Modern macOS video player (native, MPV-based)
-
-      # Launcher
-      "raycast" # Spotlight replacement with extensions
-
-      # AI tools
-      "claude" # The official claude desktop app
-
-      # Security
-      "secretive" # Secure Enclave SSH keys (Touch ID)
+      "ghostty"
+      "secretive"
+      "orbstack"
+      "iina"
+      "raycast"
+      "claude"
+      "helium-browser"
+      "beeper"
     ];
 
     # Mac App Store apps (requires `mas` CLI)
