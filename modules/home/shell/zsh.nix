@@ -32,6 +32,9 @@
       VISUAL = "hx";
       PAGER = "less";
       LESS = "-R";
+      # Secretive SSH agent socket (macOS Secure Enclave)
+      # Uses ~/Library which expands correctly per-user
+      SSH_AUTH_SOCK = "${config.home.homeDirectory}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
     };
 
     # Shell aliases

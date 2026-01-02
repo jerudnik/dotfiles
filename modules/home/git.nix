@@ -13,9 +13,11 @@
     # Disable version check warning (using stable nixpkgs with unstable HM)
     # (This is set at home level, see users/john/home.nix)
 
-    # SSH commit signing with Yubikey
+    # SSH commit signing with secretive (Secure Enclave)
+    # Key stored in Secure Enclave, accessed via Touch ID
+    # Uses ~/.ssh/secretive.pub symlink (user creates this pointing to their key)
     signing = {
-      key = "~/.ssh/id_ed25519_sk.pub";
+      key = "~/.ssh/secretive.pub";
       signByDefault = true;
     };
 
@@ -27,7 +29,7 @@
         email = "john.rudnik@gmail.com";
       };
 
-      # SSH signing configuration (Yubikey FIDO2)
+      # SSH signing configuration (secretive - Secure Enclave)
       gpg.format = "ssh";
       gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
 

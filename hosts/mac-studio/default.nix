@@ -58,7 +58,11 @@
   # SSH server for remote access
   services.sshd = {
     enable = true;
-    authorizedKeysFile = config.sops.secrets."ssh/authorized_key".path;
+    authorizedKeysFiles = [
+      config.sops.secrets."ssh/authorized_key_secretive".path
+      config.sops.secrets."ssh/authorized_key_builder".path
+      config.sops.secrets."ssh/authorized_key_yubikey".path
+    ];
   };
 
   # ============================================================

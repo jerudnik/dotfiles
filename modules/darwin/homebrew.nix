@@ -66,6 +66,9 @@
 
       # AI tools
       "claude" # The official claude desktop app
+
+      # Security
+      "secretive" # Secure Enclave SSH keys (Touch ID)
     ];
 
     # Mac App Store apps (requires `mas` CLI)

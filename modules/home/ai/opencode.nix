@@ -32,6 +32,9 @@ let
       # Markdown table formatter
       "@franlol/opencode-md-table-formatter@latest"
 
+      # Auto-injects typescript types into file reads and provides lookup tools
+      "@nick-vi/opencode-type-inject@latest"
+
       # Dynamic context pruning - optimizes token usage by removing stale tool outputs
       "@tarquinen/opencode-dcp@latest"
     ];

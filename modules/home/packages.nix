@@ -50,12 +50,13 @@
     curl
     wget
 
-    openssh # SSH with FIDO2/Yubikey support (replaces macOS built-in)
+    openssh # SSH client (replaces macOS built-in for consistency)
 
     # ============================================================
     # Security & Authentication
     # ============================================================
-    yubikey-manager # Yubikey management CLI (ykman)
+    # secretive installed via Homebrew cask (requires /Applications for Secure Enclave)
+    yubikey-manager # Yubikey management CLI (ykman) - still needed for sops-nix
 
     # ============================================================
     # Compression

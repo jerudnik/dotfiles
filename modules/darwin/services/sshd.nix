@@ -1,6 +1,6 @@
 # SSH server (Remote Login) service module
 # Enables macOS built-in sshd with hardened configuration
-# Uses Yubikey-backed SSH keys via FIDO2/ed25519-sk
+# Supports multiple authorized key files (secretive, builder, yubikey)
 {
   config,
   pkgs,
@@ -15,13 +15,23 @@ in
   options.services.sshd = {
     enable = mkEnableOption "SSH server (Remote Login)";
 
+    authorizedKeysFiles = mkOption {
+      type = types.listOf types.path;
+      default = [ ];
+      description = ''
+        List of paths to files containing authorized SSH public keys.
+        All keys from all files will be combined into the authorized_keys.
+        Typically points to sops secret paths like:
+        - config.sops.secrets."ssh/authorized_key_secretive".path
+        - config.sops.secrets."ssh/authorized_key_builder".path
+      '';
+    };
+
+    # Legacy option for backwards compatibility
     authorizedKeysFile = mkOption {
       type = types.nullOr types.path;
       default = null;
-      description = ''
-        Path to a file containing authorized SSH public keys.
-        Typically points to a sops secret path like config.sops.secrets."ssh/authorized_key".path
-      '';
+      description = "Deprecated: Use authorizedKeysFiles instead";
     };
 
     passwordAuthentication = mkOption {
@@ -43,6 +53,11 @@ in
   };
 
   config = mkIf cfg.enable {
+    # Combine legacy option with new list
+    services.sshd.authorizedKeysFiles = mkIf (cfg.authorizedKeysFile != null) [
+      cfg.authorizedKeysFile
+    ];
+
     # Hardened sshd configuration via drop-in config
     environment.etc."ssh/sshd_config.d/100-nix-managed.conf".text = ''
       # Managed by nix-darwin - do not edit manually
@@ -51,16 +66,14 @@ in
       PubkeyAuthentication yes
       PermitRootLogin ${cfg.permitRootLogin}
       AuthenticationMethods publickey
-      ${optionalString (cfg.authorizedKeysFile != null) ''
+      ${optionalString (cfg.authorizedKeysFiles != [ ]) ''
         AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/authorized_keys.d/%u
       ''}
     '';
 
     # Pre-activation: Remove authorized_keys.d to prevent nix-darwin security check failure
-    # This is safe because we fully manage this directory via our postActivation script
-    system.activationScripts.preActivation.text = mkIf (cfg.authorizedKeysFile != null) ''
+    system.activationScripts.preActivation.text = mkIf (cfg.authorizedKeysFiles != [ ]) ''
       # Remove existing authorized_keys.d to prevent nix-darwin aborting
-      # (nix-darwin has a security check that aborts if this directory exists)
       if [ -d /etc/ssh/authorized_keys.d ]; then
         echo "Removing /etc/ssh/authorized_keys.d for re-activation..."
         rm -rf /etc/ssh/authorized_keys.d
@@ -75,13 +88,16 @@ in
         systemsetup -setremotelogin on 2>/dev/null || true
       fi
 
-      ${optionalString (cfg.authorizedKeysFile != null) ''
-        # Set up system-wide authorized keys from sops secret
+      ${optionalString (cfg.authorizedKeysFiles != [ ]) ''
+        # Set up system-wide authorized keys from sops secrets
         echo "Setting up SSH authorized keys..."
         mkdir -p /etc/ssh/authorized_keys.d
         for user in $(dscl . -list /Users | grep -v '^_'); do
           if [ -d "/Users/$user" ]; then
-            cat ${cfg.authorizedKeysFile} > "/etc/ssh/authorized_keys.d/$user" 2>/dev/null || true
+            # Combine all authorized key files
+            cat ${
+              concatStringsSep " " (map (f: toString f) cfg.authorizedKeysFiles)
+            } > "/etc/ssh/authorized_keys.d/$user" 2>/dev/null || true
             chmod 644 "/etc/ssh/authorized_keys.d/$user" 2>/dev/null || true
           fi
         done
