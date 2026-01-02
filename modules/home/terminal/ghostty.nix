@@ -19,7 +19,6 @@
       font-family-bold-italic = "iA Writer Mono";
       font-size = 13;
       font-thicken = true;
-      adjust-cell-height = "20%";
       window-padding-x = 10;
       window-padding-y = 10;
       window-decoration = true;

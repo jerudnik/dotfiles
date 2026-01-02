@@ -32,12 +32,13 @@ There are no tests in this repository. Validation is done via `nix flake check` 
   - `just-testing/default.nix` (just-testing)
   - `sleeper-service/default.nix` (Pixelbook, NixOS)
 - `modules/`
-  - `base/` – stylix
+  - `base/` – stylix (fonts, themes)
   - `darwin/` – system, homebrew, secrets, services (ollama, whisper, tailscale, sshd, emacs, harmonia, linux-builder)
-  - `nixos/` – desktop (hyprland, launcher, lock, notifications, waybar), security, system, secrets
-  - `home/` – ai, apps (incl. linux), editors, shell, terminal, git, packages, ssh, development
+  - `nixos/` – desktop (hyprland, launcher, lock, notifications, waybar, darkman), security, system, secrets
+  - `home/` – ai, apps (incl. linux), editors, shell (atuin, navi, zsh plugins), terminal (ghostty), git, packages, ssh, development (direnv+sops)
 - `users/{john,jrudnik}/` – user home-manager configs
-- `themes/` – base16 schemes
+- `themes/` – base16 schemes (atelier, gruvbox, tomorrow, nano, nord, modus)
+- `scripts/` – utility scripts (theme-switch.sh for darkman auto-switching)
 - `secrets/` – `.sops.yaml`, `secrets.yaml`
 
 ## Code Style
@@ -55,6 +56,7 @@ There are no tests in this repository. Validation is done via `nix flake check` 
 - Declare in `modules/darwin/secrets.nix` or `modules/nixos/secrets.nix`
 - Edit: `SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets/secrets.yaml`
 - See `docs/ai-tools-setup.md` for full workflow
+- Smart SOPS with direnv: create `.envrc` with `use sops secrets.yaml` in project root; secrets auto-decrypt on `cd`
 
 ## MCP Servers (summary)
 
@@ -84,6 +86,11 @@ There are no tests in this repository. Validation is done via `nix flake check` 
 - Add service: create `modules/darwin/services/foo.nix`, import in `modules/darwin/default.nix`, enable in host
 - Add host: `hosts/<name>/default.nix`, then list in `flake.nix`
 - Add MCP server: define in `modules/home/ai/mcp.nix`, add secret if needed, apply
+- Add theme: create `themes/<name>.nix` using `mkScheme` pattern, add to `modules/base/stylix.nix`
+- Terminal: Ghostty is the default terminal (replaced wezterm); configure in `modules/home/terminal/ghostty.nix`
+- Shell tools: Atuin (history sync with daemon), Navi (cheatsheets), you-should-use (alias suggestions); configure in `modules/home/shell/`
+- Theme auto-switch: Use darkman service with `scripts/theme-switch.sh` for GeoIP-based light/dark switching
+- Font standardization: Configure fonts in `modules/base/stylix.nix`; iA Writer fonts available as `ia-writer-mono`, `ia-writer-duospace`, `ia-writer-quattro`; Phosphor icons available as custom package
 
 ## Important Notes
 

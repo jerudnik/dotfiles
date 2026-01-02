@@ -84,6 +84,15 @@
   # Desktop & Dock
   # ============================================================
   system.defaults.dock = {
+    # Dock apps - minimal, tools-first approach
+    persistent-apps = [
+      { app = "/Applications/Ghostty.app"; }
+      { app = "/System/Applications/Finder.app"; }
+      { app = "/Applications/Helium.app"; }
+      { app = "/Applications/Beeper.app"; }
+      { app = "/Applications/Obsidian.app"; }
+    ];
+
     # Dock size
     tilesize = 48;
 
