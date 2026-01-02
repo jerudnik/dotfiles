@@ -25,6 +25,112 @@
   # From: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
   # SSH uses ~/.ssh/known_hosts by default; we seed it via activation script below
 
+  # ==========================================================================
+  # SSH Key Setup Helper
+  # Runs on activation to ensure SSH keys are properly configured
+  # ==========================================================================
+  home.activation.sshKeySetup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    SSH_DIR="$HOME/.ssh"
+    mkdir -p "$SSH_DIR"
+
+    # Detect platform
+    if [[ "$(uname)" == "Darwin" ]]; then
+      # =======================================================================
+      # macOS: Check for Secretive setup
+      # =======================================================================
+      SECRETIVE_SOCKET="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
+      SECRETIVE_KEYS_DIR="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys"
+      SECRETIVE_SYMLINK="$SSH_DIR/secretive.pub"
+      
+      if [[ -S "$SECRETIVE_SOCKET" ]]; then
+        # Secretive is running - check if symlink exists and is valid
+        if [[ ! -L "$SECRETIVE_SYMLINK" ]] || [[ ! -f "$SECRETIVE_SYMLINK" ]]; then
+          echo ""
+          echo "╔══════════════════════════════════════════════════════════════════╗"
+          echo "║  SSH KEY SETUP REQUIRED                                          ║"
+          echo "╠══════════════════════════════════════════════════════════════════╣"
+          echo "║  Secretive is running but ~/.ssh/secretive.pub is not set up.    ║"
+          echo "║                                                                  ║"
+          echo "║  Available keys in Secretive:                                    ║"
+          if [[ -d "$SECRETIVE_KEYS_DIR" ]]; then
+            for keyfile in "$SECRETIVE_KEYS_DIR"/*.pub; do
+              if [[ -f "$keyfile" ]]; then
+                keyname=$(cat "$keyfile" | awk '{print $NF}')
+                keyhash=$(basename "$keyfile" .pub)
+                echo "║    - $keyname"
+                echo "║      Hash: $keyhash"
+              fi
+            done
+          fi
+          echo "║                                                                  ║"
+          echo "║  To set up, run:                                                 ║"
+          echo "║    ln -sf ~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys/<HASH>.pub ~/.ssh/secretive.pub"
+          echo "║                                                                  ║"
+          echo "║  Then add the public key to:                                     ║"
+          echo "║    1. GitHub (https://github.com/settings/ssh/new)               ║"
+          echo "║    2. secrets/secrets.yaml (ssh/authorized_key_secretive)        ║"
+          echo "╚══════════════════════════════════════════════════════════════════╝"
+          echo ""
+        fi
+      else
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════════════╗"
+        echo "║  SECRETIVE NOT RUNNING                                           ║"
+        echo "╠══════════════════════════════════════════════════════════════════╣"
+        echo "║  Secretive agent socket not found.                               ║"
+        echo "║                                                                  ║"
+        echo "║  Please:                                                         ║"
+        echo "║    1. Open Secretive.app from /Applications                      ║"
+        echo "║    2. Create a new key (Secure Enclave recommended)              ║"
+        echo "║    3. Run 'darwin-rebuild switch --flake .' again                ║"
+        echo "╚══════════════════════════════════════════════════════════════════╝"
+        echo ""
+      fi
+      
+      # Check for builder key
+      if [[ ! -f "$SSH_DIR/id_ed25519_builder" ]]; then
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════════════╗"
+        echo "║  BUILDER KEY NOT FOUND                                           ║"
+        echo "╠══════════════════════════════════════════════════════════════════╣"
+        echo "║  The automated builder key is missing.                           ║"
+        echo "║                                                                  ║"
+        echo "║  To generate (passphraseless for automation):                    ║"
+        echo "║    ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_builder -N \"\" -C \"builder@$(hostname)\"" 
+        echo "║                                                                  ║"
+        echo "║  Then add the public key to secrets/secrets.yaml:                ║"
+        echo "║    ssh/authorized_key_builder                                    ║"
+        echo "╚══════════════════════════════════════════════════════════════════╝"
+        echo ""
+      fi
+      
+    else
+      # =======================================================================
+      # Linux: Check for SSH key setup
+      # =======================================================================
+      if [[ ! -f "$SSH_DIR/id_ed25519" ]] && [[ ! -f "$SSH_DIR/id_ed25519_builder" ]]; then
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════════════╗"
+        echo "║  SSH KEY SETUP REQUIRED (Linux)                                  ║"
+        echo "╠══════════════════════════════════════════════════════════════════╣"
+        echo "║  No SSH keys found.                                              ║"
+        echo "║                                                                  ║"
+        echo "║  Options:                                                        ║"
+        echo "║    1. Regular key (simplest):                                    ║"
+        echo "║       ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519                 ║"
+        echo "║                                                                  ║"
+        echo "║    2. Yubikey FIDO2 (if available):                              ║"
+        echo "║       ssh-keygen -t ed25519-sk -f ~/.ssh/id_ed25519_sk           ║"
+        echo "║                                                                  ║"
+        echo "║  Then add the public key to:                                     ║"
+        echo "║    1. GitHub (https://github.com/settings/ssh/new)               ║"
+        echo "║    2. secrets/secrets.yaml                                       ║"
+        echo "╚══════════════════════════════════════════════════════════════════╝"
+        echo ""
+      fi
+    fi
+  '';
+
   # Seed known_hosts with GitHub keys on activation (not a symlink, so SSH can append)
   home.activation.seedKnownHosts = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         KNOWN_HOSTS="$HOME/.ssh/known_hosts"
