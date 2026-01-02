@@ -60,10 +60,22 @@
         mode = "0400";
       };
 
-      # SSH authorized public key (Yubikey ed25519-sk)
-      # Decrypted to /run/secrets/ssh/authorized_key
-      # Used by sshd for authorized_keys
-      "ssh/authorized_key" = {
+      # SSH authorized public keys
+      # Decrypted to /run/secrets/ssh/
+      # Used by sshd for system-wide authorized_keys
+
+      # Secretive key (Secure Enclave, Touch ID unlock) - interactive use
+      "ssh/authorized_key_secretive" = {
+        mode = "0444"; # World-readable (it's a public key)
+      };
+
+      # Builder key (passphraseless ed25519) - automated builds
+      "ssh/authorized_key_builder" = {
+        mode = "0444"; # World-readable (it's a public key)
+      };
+
+      # Legacy Yubikey key (kept for transition period)
+      "ssh/authorized_key_yubikey" = {
         mode = "0444"; # World-readable (it's a public key)
       };
     };
