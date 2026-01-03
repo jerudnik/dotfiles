@@ -35,14 +35,17 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # TODO: Re-enable mac-app-util when upstream issue is resolved
+    # treefmt for formatting
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # mac-app-util creates trampoline apps so Spotlight/Raycast can index nix-installed .app bundles
-    # Currently broken due to gitlab.common-lisp.net returning 404 for the 'iterate' library
-    # Upstream issue: https://github.com/hraban/mac-app-util/issues/39
-    # mac-app-util = {
-    #   url = "github:hraban/mac-app-util";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    mac-app-util = {
+      url = "github:hraban/mac-app-util";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # OpenCode - pinned to v1.0.204 for native skills support
     opencode = {
@@ -69,9 +72,11 @@
       determinate,
       sops-nix,
       stylix,
+      treefmt-nix,
       opencode,
       emacs-overlay,
       nixos-hardware,
+      mac-app-util,
       ...
     }@inputs:
     let
@@ -163,9 +168,8 @@
             # Stylix theming
             stylix.darwinModules.stylix
 
-            # TODO: Re-enable mac-app-util when upstream issue is resolved
-            # See inputs section for details on the gitlab.common-lisp.net 404 issue
-            # mac-app-util.darwinModules.default
+            # mac-app-util for Spotlight/Raycast integration
+            mac-app-util.darwinModules.default
 
             # Host-specific configuration
             hostPath
@@ -180,10 +184,10 @@
                 users.${username} = ./users/${username}/home.nix;
                 backupFileExtension = "backup";
 
-                # TODO: Re-enable mac-app-util sharedModules when upstream issue is resolved
-                # sharedModules = [
-                #   mac-app-util.homeManagerModules.default
-                # ];
+                # mac-app-util for Spotlight/Raycast integration
+                sharedModules = [
+                  mac-app-util.homeManagerModules.default
+                ];
               };
             }
 
@@ -235,10 +239,10 @@
       # Darwin (macOS) Configurations
       # ============================================================
       darwinConfigurations = {
-        # Mac Studio - AI inference server and primary workstation
+        # serious-callers-only - AI inference server and primary workstation
         "serious-callers-only" = mkDarwinSystem {
           hostname = "serious-callers-only";
-          hostPath = ./hosts/mac-studio;
+          hostPath = ./hosts/serious-callers-only;
           username = "john";
         };
 
@@ -315,6 +319,12 @@
       # ============================================================
       # Formatter
       # ============================================================
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+      formatter = forAllSystems (
+        system:
+        let
+          pkgs = mkPkgs system;
+        in
+        treefmt-nix.lib.mkWrapper pkgs (import ./treefmt.nix { inherit pkgs; })
+      );
     };
 }

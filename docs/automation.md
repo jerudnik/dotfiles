@@ -12,7 +12,7 @@ Enables unattended system configuration updates without interactive password pro
 | ----------- | ------------------------------------------------------------ |
 | **Module**  | `modules/darwin/sudo.nix`                                    |
 | **Scope**   | Only `darwin-rebuild` is passwordless (not full sudo)        |
-| **Users**   | Applied to `config.system.primaryUser` (john on mac-studio, jrudnik on just-testing) |
+| **Users**   | Applied to `config.system.primaryUser` (john on serious-callers-only, jrudnik on just-testing) |
 
 ### What This Enables
 
@@ -69,6 +69,13 @@ security.pam.enableSudoTouchIdAuth = true;
 Touch ID is better for interactive sessions but doesn't help automated agents.
 
 ---
+
+## Formatting (treefmt)
+
+- `nix fmt` now uses treefmt (wrapper) with nixfmt-rfc-style for Nix and prettier for md/yaml/json.
+- Config: `treefmt.nix` at repo root; flake formatter wraps treefmt via `treefmt-nix` input.
+- Run before commits: `nix fmt` and `nix flake check`.
+- Dev shell still provides `nix fmt` alias (wrapper).
 
 ## Parallel Evaluation (Determinate Nix)
 

@@ -8,8 +8,9 @@ Parsimony first: this is the minimal, accurate setup for OpenCode with Yubikey-b
 3) Add public key to `.sops.yaml` (keys + creation_rules)
 4) `SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets.yaml` → add `api_keys/*`
 5) Declare secrets per host (owner matches user)
-6) Apply: `apply` (macOS) or `sudo nixos-rebuild switch --flake .`
-7) New terminal → verify `OPENCODE_API_KEY` and `opencode --version`
+6) Run `scripts/setup.sh` for preflight checks (SSH key, sops age key, Yubikey, sops)
+7) Apply: `apply` (macOS) or `sudo nixos-rebuild switch --flake .`
+8) New terminal → verify `OPENCODE_API_KEY` and `opencode --version`
 
 ## Prerequisites
 - Yubikey with PIV support
@@ -47,7 +48,7 @@ api_keys:
 ## Declare Secrets (per host/user)
 Set owner per host to match the local username.
 ```nix
-# hosts/mac-studio/default.nix (john)
+# hosts/serious-callers-only/default.nix (john)
 sops.secrets = {
   "api_keys/opencode_zen" = { owner = "john"; mode = "0400"; };
   "api_keys/github_token" = { owner = "john"; mode = "0400"; };

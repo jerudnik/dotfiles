@@ -162,6 +162,11 @@
         pylsp = {
           command = "${pkgs.python311Packages.python-lsp-server}/bin/pylsp";
         };
+
+        # Markdown language server
+        markdown-oxide = {
+          command = "${pkgs.markdown-oxide}/bin/markdown-oxide";
+        };
       };
 
       language = [
@@ -196,6 +201,7 @@
           name = "markdown";
           auto-format = true;
           soft-wrap.enable = true;
+          language-servers = [ "markdown-oxide" ];
         }
       ];
     };
@@ -218,7 +224,7 @@
     # Helix has built-in JSON support; re-add if needed with pinned Node version
 
     # Markdown
-    marksman
+    markdown-oxide
 
     # General
     taplo # TOML

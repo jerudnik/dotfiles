@@ -21,6 +21,10 @@
   networking.hostName = "serious-callers-only";
   networking.computerName = "serious-callers-only";
 
+  # Theme
+  themes.scheme = "modus";
+  themes.mode = "dark";
+
   # ============================================================
   # Linux Builder (for cross-compilation and remote building)
   # ============================================================

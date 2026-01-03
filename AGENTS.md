@@ -11,7 +11,7 @@ sudo darwin-rebuild switch --flake .     # Direct command
 update                                   # Dev shell alias
 nix flake update                         # Direct command
 
-# Format all Nix files
+# Format code (treefmt: nixfmt + prettier)
 nix fmt
 
 # Check flake validity
@@ -28,7 +28,7 @@ There are no tests in this repository. Validation is done via `nix flake check` 
 - `flake.nix` / `flake.lock` – inputs/outputs
 - `hosts/` – per-host configs
   - `common/{darwin,nixos}/default.nix`
-  - `mac-studio/default.nix` (serious-callers-only)
+  - `serious-callers-only/default.nix` (serious-callers-only)
   - `just-testing/default.nix` (just-testing)
   - `sleeper-service/default.nix` (Pixelbook, NixOS)
 - `modules/`
@@ -38,12 +38,12 @@ There are no tests in this repository. Validation is done via `nix flake check` 
   - `home/` – ai, apps (incl. linux), editors, shell (atuin, navi, zsh plugins), terminal (ghostty), git, packages, ssh, development (direnv+sops)
 - `users/{john,jrudnik}/` – user home-manager configs
 - `themes/` – base16 schemes (atelier, gruvbox, tomorrow, nano, nord, modus)
-- `scripts/` – utility scripts (theme-switch.sh for darkman auto-switching)
+- `scripts/` – utility scripts (`setup.sh` preflight/apply helper; `theme-switch.sh` for darkman auto-switching)
 - `secrets/` – `.sops.yaml`, `secrets.yaml`
 
 ## Code Style
 
-- Formatter: `nix fmt` (nixfmt-rfc-style)
+- Formatter: `nix fmt` (treefmt-nix wrapper: nixfmt-rfc-style + prettier for md/yaml/json)
 - Module form: `{ config, pkgs, lib, ... }: { ... }`
 - Conventions: 2-space indent; trailing commas; double quotes; `with pkgs; [ ... ]` for package lists
 - Options: `lib.mkOption`, `lib.mkIf`, `lib.mkDefault`, `lib.mkEnableOption`

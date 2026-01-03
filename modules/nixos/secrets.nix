@@ -78,6 +78,12 @@
       "ssh/authorized_key_yubikey" = {
         mode = "0444"; # World-readable (it's a public key)
       };
+
+      # Atuin sync key
+      "atuin/key" = {
+        owner = "john";
+        mode = "0400";
+      };
     };
   };
 

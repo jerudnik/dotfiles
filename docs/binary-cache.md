@@ -30,7 +30,7 @@ Harmonia serves cached Nix derivations from `serious-callers-only` (Mac Studio),
 
 ### Server (serious-callers-only)
 
-Location: `hosts/mac-studio/default.nix`
+Location: `hosts/serious-callers-only/default.nix`
 
 ```nix
 services.harmonia = {
@@ -198,7 +198,7 @@ cat /var/lib/harmonia/public-key
 
 2. Update server config to use new key:
    ```nix
-   # hosts/mac-studio/default.nix
+   # hosts/serious-callers-only/default.nix
    services.harmonia.signKeyPath = config.sops.secrets."harmonia/signing_key_v2".path;
    ```
 
@@ -246,7 +246,7 @@ sops.secrets."harmonia/signing_key" = {
 ## References
 
 - Server module: `modules/darwin/services/harmonia.nix`
-- Server config: `hosts/mac-studio/default.nix`
+- Server config: `hosts/serious-callers-only/default.nix`
 - Client config (Darwin): `hosts/common/darwin/default.nix`
 - Client config (NixOS): `hosts/common/nixos/default.nix`
 - Public key: `secrets/public-keys/harmonia.pub`

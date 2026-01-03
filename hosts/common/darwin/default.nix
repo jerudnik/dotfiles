@@ -30,7 +30,7 @@
       "parallel-eval"
     ];
 
-    # Harmonia cache (mac-studio)
+    # Harmonia cache (serious-callers-only)
     extra-substituters = [
       "http://serious-callers-only:5000"
     ];
@@ -41,4 +41,14 @@
 
   # Enable Touch ID for sudo authentication
   security.pam.services.sudo_local.touchIdAuth = true;
+
+  # mac-app-util for Spotlight/Raycast integration (via flake module)
+  services.mac-app-util.enable = true;
+
+  # Hide the trampolines folder from Finder
+  system.activationScripts.hideTrampolinesFolder.text = ''
+    if [[ -d "/Applications/Nix Trampolines" ]]; then
+      chflags hidden "/Applications/Nix Trampolines"
+    fi
+  '';
 }

@@ -79,7 +79,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -C "user@hostname"
 
 ### macOS (nix-darwin)
 
-Enable in host config (e.g., `hosts/mac-studio/default.nix`):
+Enable in host config (e.g., `hosts/serious-callers-only/default.nix`):
 ```nix
 services.sshd = {
   enable = true;

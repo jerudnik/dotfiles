@@ -12,15 +12,10 @@
       style = "compact";
       inline_height = 20;
       show_preview = true;
+      username = "jrudnik";
+      email = "john.rudnik@gmail.com";
+      # sops-nix writes to /run/secrets/atuin/key on both darwin+nixos
+      key_path = "/run/secrets/atuin/key";
     };
   };
-
-  # Reminder banner if not logged in (use initContent per HM guidance)
-  programs.zsh.initContent = lib.mkAfter ''
-    if command -v atuin >/dev/null 2>&1; then
-      if ! atuin status 2>/dev/null | grep -q "Logged in"; then
-        echo "[atuin] run 'atuin login' to enable sync" >&2
-      fi
-    fi
-  '';
 }

@@ -82,6 +82,12 @@
         mode = "0444"; # World-readable (it's a public key)
       };
 
+      # Atuin sync key
+      "atuin/key" = {
+        owner = config.system.primaryUser;
+        mode = "0400";
+      };
+
       # Harmonia signing key (private)
       "harmonia/signing_key" = {
         owner = "root";

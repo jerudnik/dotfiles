@@ -16,16 +16,11 @@
 
 (use-package modus-themes
   :init
-  ;; Customizations before loading theme
+  ;; Customizations before loading theme (Stylix handles theme selection)
   (setq modus-themes-italic-constructs t)
   (setq modus-themes-bold-constructs t)
   (setq modus-themes-mixed-fonts t)
-  (setq modus-themes-org-blocks 'tinted-background)
-  
-  ;; Load dark theme by default (modus-vivendi)
-  ;; Switch with M-x modus-themes-toggle
-  :config
-  (load-theme 'modus-vivendi t))
+  (setq modus-themes-org-blocks 'tinted-background))
 
 ;; ============================================================================
 ;; macOS-specific settings

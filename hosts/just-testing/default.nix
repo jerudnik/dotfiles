@@ -21,6 +21,10 @@
   networking.hostName = "just-testing";
   networking.computerName = "just-testing";
 
+  # Theme
+  themes.scheme = "modus";
+  themes.mode = "dark";
+
   # User configuration
   users.users.jrudnik = {
     name = "jrudnik";

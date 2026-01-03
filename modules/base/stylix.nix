@@ -10,42 +10,41 @@ let
   atelierSchemes = import ../../themes/atelier.nix { inherit lib; };
   gruvboxSchemes = import ../../themes/gruvbox.nix { inherit lib; };
   tomorrowSchemes = import ../../themes/tomorrow.nix { inherit lib; };
-  nanoSchemes = import ../../themes/nano.nix { inherit lib; };
   cfg = config.themes;
-  variantScheme =
-    schemeName:
-    if schemeName == "modus-operandi" then
-      modusSchemes.operandi
-    else if schemeName == "modus-vivendi" then
-      modusSchemes.vivendi
-    else if schemeName == "nord" then
-      nordSchemes.nord
-    else if schemeName == "nord-light" then
-      nordSchemes.nord-light
-    else if schemeName == "atelier-estuary" then
-      atelierSchemes.estuary
-    else if schemeName == "atelier-estuary-light" then
-      atelierSchemes.estuary-light
-    else if schemeName == "atelier-dune" then
-      atelierSchemes.dune
-    else if schemeName == "atelier-dune-light" then
-      atelierSchemes.dune-light
-    else if schemeName == "atelier-cave" then
-      atelierSchemes.cave
-    else if schemeName == "atelier-cave-light" then
-      atelierSchemes.cave-light
-    else if schemeName == "atelier-mix" then
-      atelierSchemes.mix
-    else if schemeName == "gruvbox-material-dark-hard" then
-      gruvboxSchemes.dark-hard
-    else if schemeName == "tomorrow" then
-      tomorrowSchemes.light
-    else if schemeName == "tomorrow-night" then
-      tomorrowSchemes.dark
-    else if schemeName == "nano" then
-      nanoSchemes.nano
-    else
-      modusSchemes.vivendi;
+
+  schemeVariants = {
+    modus = {
+      light = modusSchemes.operandi;
+      dark = modusSchemes.vivendi;
+    };
+    gruvbox = {
+      light = gruvboxSchemes.light-medium;
+      dark = gruvboxSchemes.dark-hard;
+    };
+    nord = {
+      light = nordSchemes.nord-light;
+      dark = nordSchemes.nord;
+    };
+    tomorrow = {
+      light = tomorrowSchemes.light;
+      dark = tomorrowSchemes.dark;
+    };
+    "atelier-estuary" = {
+      light = atelierSchemes.estuary-light;
+      dark = atelierSchemes.estuary;
+    };
+    "atelier-mix" = {
+      light = atelierSchemes.dune-light;
+      dark = atelierSchemes.cave;
+    };
+  };
+
+  selectedScheme =
+    let
+      variants = lib.attrByPath [ cfg.scheme ] { } schemeVariants;
+      defaultVariant = if variants == { } then schemeVariants.modus else variants;
+    in
+    lib.attrByPath [ cfg.mode ] modusSchemes.vivendi defaultVariant;
   fontPackages = [
     pkgs.ia-writer-mono
     pkgs.ia-writer-duospace
@@ -56,40 +55,29 @@ let
   ];
 in
 {
-  options.themes.variant = lib.mkOption {
+  options.themes.scheme = lib.mkOption {
     type = lib.types.enum [
-      "modus-operandi"
-      "modus-vivendi"
+      "modus"
+      "gruvbox"
       "nord"
-      "nord-light"
-      "atelier-estuary"
-      "atelier-estuary-light"
-      "atelier-dune"
-      "atelier-dune-light"
-      "atelier-cave"
-      "atelier-cave-light"
-      "atelier-mix"
-      "gruvbox-material-dark-hard"
       "tomorrow"
-      "tomorrow-night"
-      "nano"
+      "atelier-estuary"
+      "atelier-mix"
     ];
-    default = "modus-vivendi";
-    description = ''
-      Select the global theme variant.
-      Light variants: modus-operandi, nord-light, atelier-estuary-light,
-        atelier-dune-light, atelier-cave-light, tomorrow.
-      Dark variants: modus-vivendi, nord, atelier-estuary, atelier-dune,
-        atelier-cave, atelier-mix, gruvbox-material-dark-hard,
-        tomorrow-night, nano.
-      "atelier-mix" uses dune-light for light mode and cave for dark mode.
-    '';
+    default = "modus";
+    description = "Theme family to use (light/dark provided by mode).";
+  };
+
+  options.themes.mode = lib.mkOption {
+    type = lib.types.enum [ "light" "dark" ];
+    default = "dark";
+    description = "Theme variant to use (light or dark).";
   };
 
   config = {
     stylix = {
       enable = lib.mkDefault true;
-      base16Scheme = lib.mkDefault (variantScheme cfg.variant);
+      base16Scheme = lib.mkDefault selectedScheme;
       fonts = {
         serif = {
           package = pkgs.ibm-plex;

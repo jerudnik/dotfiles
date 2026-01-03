@@ -11,6 +11,7 @@
   imports = [
     # Import all home-manager modules
     ../../modules/home
+    # Note: mac-app-util.homeManagerModules.default is imported via flake.nix sharedModules
   ];
 
   # Home Manager needs a bit of information about you and the paths it should manage
@@ -40,4 +41,6 @@
 
   # Emacs - knowledge management and programmable notes
   programs.myEmacs.enable = true;
+
+  # mac-app-util is enabled via flake.nix sharedModules + hosts/common/darwin
 }

@@ -53,8 +53,8 @@
         gaps_in = 6;
         gaps_out = 12;
         border_size = 2;
-        "col.active_border" = lib.mkForce "rgba(88c0d0ff) rgba(81a1c1ff) 45deg";
-        "col.inactive_border" = lib.mkForce "rgba(4c566aaa)";
+        "col.active_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base0D}ff) rgba(${config.lib.stylix.colors.base0B}ff) 45deg";
+        "col.inactive_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base03}aa)";
         layout = "dwindle";
         allow_tearing = false;
       };
@@ -69,7 +69,7 @@
           enabled = true;
           range = 8;
           render_power = 2;
-          color = lib.mkForce "rgba(1a1a1aee)";
+          color = lib.mkForce "rgba(${config.lib.stylix.colors.base00}ee)";
         };
       };
 
@@ -299,10 +299,10 @@
       }
 
       window#waybar {
-        background: rgba(46, 52, 64, 0.85);
+        background: alpha(@base00, 0.85);
         border-radius: 16px;
-        border: 1px solid rgba(76, 86, 106, 0.6);
-        color: #e5e9f0;
+        border: 1px solid alpha(@base03, 0.6);
+        color: @base05;
       }
 
       #workspaces button {
@@ -310,17 +310,17 @@
         margin: 4px 2px;
         border-radius: 12px;
         background: transparent;
-        color: #e5e9f0;
+        color: @base05;
         border: none;
       }
 
       #workspaces button.active {
-        background: #88c0d0;
-        color: #2e3440;
+        background: @base0D;
+        color: @base00;
       }
 
       #workspaces button:hover {
-        background: rgba(136, 192, 208, 0.3);
+        background: alpha(@base0D, 0.3);
       }
 
       #window,
@@ -332,7 +332,7 @@
         padding: 4px 12px;
         margin: 4px 2px;
         border-radius: 12px;
-        background: rgba(76, 86, 106, 0.4);
+        background: alpha(@base03, 0.4);
       }
 
       #clock {
@@ -340,18 +340,18 @@
       }
 
       #battery.warning {
-        background: #ebcb8b;
-        color: #2e3440;
+        background: @base0A;
+        color: @base00;
       }
 
       #battery.critical {
-        background: #bf616a;
-        color: #eceff4;
+        background: @base08;
+        color: @base07;
       }
 
       tooltip {
-        background: #3b4252;
-        border: 1px solid #4c566a;
+        background: @base01;
+        border: 1px solid @base03;
         border-radius: 12px;
       }
     '';
@@ -371,16 +371,16 @@
     };
   };
 
-  # Mako notifications - Nord themed
+  # Mako notifications - themed via Stylix
   services.mako = {
     enable = true;
     settings = {
       anchor = "top-right";
-      background-color = lib.mkForce "#2e3440ee";
-      border-color = lib.mkForce "#4c566a";
+      background-color = lib.mkForce "#${config.lib.stylix.colors.base00}ee";
+      border-color = lib.mkForce "#${config.lib.stylix.colors.base03}";
       border-radius = 12;
       border-size = 2;
-      text-color = lib.mkForce "#e5e9f0";
+      text-color = lib.mkForce "#${config.lib.stylix.colors.base05}";
       padding = "12";
       margin = "12";
       width = 360;
@@ -427,15 +427,15 @@
       background = lib.mkForce [
         {
           monitor = "";
-          color = "rgba(46, 52, 64, 1.0)";
+          color = "rgba(${config.lib.stylix.colors.base00}ff)";
           blur_passes = 0;
         }
       ];
-      label = [
+      label = lib.mkForce [
         {
           monitor = "";
           text = "$TIME";
-          color = "rgba(229, 233, 240, 1.0)";
+          color = "rgba(${config.lib.stylix.colors.base05}ff)";
           font_size = 72;
           font_family = "IBM Plex Serif";
           position = "0, 100";
@@ -445,7 +445,7 @@
         {
           monitor = "";
           text = "Type password to unlock";
-          color = "rgba(136, 192, 208, 1.0)";
+          color = "rgba(${config.lib.stylix.colors.base0D}ff)";
           font_size = 14;
           font_family = "iMWritingMono Nerd Font";
           position = "0, -100";
@@ -461,9 +461,9 @@
           outline_thickness = 2;
           dots_size = 0.25;
           dots_spacing = 0.3;
-          outer_color = "rgba(136, 192, 208, 1.0)";
-          inner_color = "rgba(76, 86, 106, 0.5)";
-          font_color = "rgba(229, 233, 240, 1.0)";
+          outer_color = "rgba(${config.lib.stylix.colors.base0D}ff)";
+          inner_color = "rgba(${config.lib.stylix.colors.base02}80)";
+          font_color = "rgba(${config.lib.stylix.colors.base05}ff)";
           fade_on_empty = false;
           placeholder_text = "";
           hide_input = false;

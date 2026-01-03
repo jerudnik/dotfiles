@@ -74,7 +74,7 @@ let
 
         ## Before Committing
 
-        1. Run `nix fmt` to format
+        1. Run `nix fmt` to format (treefmt wrapper: nixfmt + prettier)
         2. Run `nix flake check` to validate
       '';
     };
@@ -188,7 +188,7 @@ let
       content = ''
         ## Formatting
 
-        - Run `nix fmt` before committing (uses nixfmt-rfc-style)
+        - Run `nix fmt` before committing (treefmt wrapper: nixfmt + prettier)
         - Indentation: 2 spaces
         - Trailing commas: Required in sets and lists
 
@@ -377,7 +377,7 @@ let
 
         ## Pre-Commit Checklist
 
-        1. `nix fmt` - Format all Nix files
+        1. `nix fmt` - Format all Nix files (treefmt wrapper)
         2. `nix flake check` - Validate configuration
         3. Consider testing with `apply` command
 
@@ -415,7 +415,7 @@ let
           common/
             darwin/                  # Shared macOS config
             nixos/                   # Shared NixOS config (placeholder)
-          mac-studio/                # Host-specific config
+          serious-callers-only/      # Host-specific config
         modules/
           base/                      # Cross-platform modules
             stylix.nix               # Theming configuration

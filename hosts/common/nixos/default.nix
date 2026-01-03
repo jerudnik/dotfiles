@@ -29,7 +29,7 @@
         "@wheel"
       ];
 
-      # Harmonia cache (mac-studio)
+      # Harmonia cache (serious-callers-only)
       extra-substituters = [
         "http://serious-callers-only:5000"
       ];
