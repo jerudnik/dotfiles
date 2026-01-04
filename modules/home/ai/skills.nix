@@ -427,7 +427,7 @@ let
           home/                      # home-manager modules
             ai/                      # AI tools (OpenCode, MCP)
             apps/                    # Application configs
-            editors/                 # Editor configs (helix)
+            editors/                 # Editor configs (neovim)
             shell/                   # Shell (zsh, starship)
             terminal/                # Terminals (ghostty, wezterm)
             packages.nix             # CLI tools

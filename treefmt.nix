@@ -10,6 +10,11 @@
   programs.prettier = {
     enable = true;
     package = pkgs.nodePackages.prettier;
-    includes = [ "*.md" "*.yaml" "*.yml" "*.json" ];
+    includes = [
+      "*.md"
+      "*.yaml"
+      "*.yml"
+      "*.json"
+    ];
   };
 }

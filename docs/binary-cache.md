@@ -41,13 +41,13 @@ services.harmonia = {
 
 Options (defaults in `modules/darwin/services/harmonia.nix`):
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `bind` | string | `0.0.0.0:5000` | Address and port |
-| `workers` | int | `4` | Worker threads |
-| `priority` | int | `30` | Cache priority (lower = preferred) |
-| `maxConnectionRate` | int | `256` | Max connections per worker |
-| `enableCompression` | bool | `false` | zstd compression (can cause resume issues) |
+| Option              | Type   | Default        | Description                                |
+| ------------------- | ------ | -------------- | ------------------------------------------ |
+| `bind`              | string | `0.0.0.0:5000` | Address and port                           |
+| `workers`           | int    | `4`            | Worker threads                             |
+| `priority`          | int    | `30`           | Cache priority (lower = preferred)         |
+| `maxConnectionRate` | int    | `256`          | Max connections per worker                 |
+| `enableCompression` | bool   | `false`        | zstd compression (can cause resume issues) |
 
 **Critical**: The signing key is required and managed via sops.
 
@@ -88,6 +88,7 @@ curl http://serious-callers-only:5000/nix-cache-info
 ```
 
 Expected output:
+
 ```
 StoreDir: /nix/store
 WantMassQuery: 1
@@ -191,18 +192,21 @@ cat /var/lib/harmonia/public-key
 ### Update configuration
 
 1. Add new secret to sops:
+
    ```bash
    sops secrets/secrets.yaml
    # Add: harmonia/signing_key_v2: <private-key-content>
    ```
 
 2. Update server config to use new key:
+
    ```nix
    # hosts/serious-callers-only/default.nix
    services.harmonia.signKeyPath = config.sops.secrets."harmonia/signing_key_v2".path;
    ```
 
 3. Add new public key to all clients (both Darwin and NixOS common configs):
+
    ```nix
    extra-trusted-public-keys = [
      "serious-callers-only-1:..."  # Keep old key for validation
@@ -211,12 +215,13 @@ cat /var/lib/harmonia/public-key
    ```
 
 4. Apply changes:
+
    ```bash
    # On server
-   sudo darwin-rebuild switch
+   sudo darwin-rebuild switch && chezmoi apply
 
    # On all clients
-   sudo darwin-rebuild switch  # or nixos-rebuild switch
+   sudo darwin-rebuild switch && chezmoi apply  # or sudo nixos-rebuild switch && chezmoi apply
    ```
 
 5. Wait for cache to repopulate (new builds will be signed with new key)
@@ -235,6 +240,7 @@ harmonia:
 ```
 
 Declared in `modules/darwin/secrets.nix`:
+
 ```nix
 sops.secrets."harmonia/signing_key" = {
   owner = "root";

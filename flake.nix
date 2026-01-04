@@ -53,12 +53,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Emacs overlay - bleeding-edge Emacs packages and variants
-    emacs-overlay = {
-      url = "github:nix-community/emacs-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # NixOS hardware quirks and optimizations
     nixos-hardware.url = "github:NixOS/nixos-hardware";
   };
@@ -74,7 +68,6 @@
       stylix,
       treefmt-nix,
       opencode,
-      emacs-overlay,
       nixos-hardware,
       mac-app-util,
       ...
@@ -116,7 +109,6 @@
       mkOverlays = system: [
         customOverlay
         (opencodeOverlay system)
-        emacs-overlay.overlays.default
       ];
 
       # Shared pkgs constructor

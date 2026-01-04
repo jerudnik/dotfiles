@@ -4,12 +4,12 @@ Need-to-know guide for this repo's SSH setup on macOS (nix-darwin) and NixOS.
 
 ## Overview
 
-| Component | macOS | NixOS |
-|-----------|-------|-------|
-| **Interactive SSH** | Secretive (Secure Enclave) | Regular ed25519 or Yubikey |
-| **Automated builds** | `~/.ssh/id_ed25519_builder` | `~/.ssh/id_ed25519_builder` |
-| **Secrets encryption** | age-plugin-yubikey (sops-nix) | Host age key (sops-nix) |
-| **Server** | sshd via nix-darwin | sshd via NixOS |
+| Component              | macOS                         | NixOS                       |
+| ---------------------- | ----------------------------- | --------------------------- |
+| **Interactive SSH**    | Secretive (Secure Enclave)    | Regular ed25519 or Yubikey  |
+| **Automated builds**   | `~/.ssh/id_ed25519_builder`   | `~/.ssh/id_ed25519_builder` |
+| **Secrets encryption** | age-plugin-yubikey (sops-nix) | Host age key (sops-nix)     |
+| **Server**             | sshd via nix-darwin           | sshd via NixOS              |
 
 ## Key Strategy
 
@@ -40,20 +40,22 @@ Need-to-know guide for this repo's SSH setup on macOS (nix-darwin) and NixOS.
 
 ## First-Time Setup
 
-An activation script runs on every `darwin-rebuild switch` or `home-manager switch` to check your SSH key setup. If keys are missing, it will print setup instructions.
+An activation script runs on every `darwin-rebuild switch` to check your SSH key setup. If keys are missing, it will print setup instructions.
 
 ### macOS (Secretive)
 
 1. **Open Secretive.app** from `/Applications`
 2. **Create a new key** in Secure Enclave
 3. **Create the symlink** (one time, persists across rebuilds):
+
    ```bash
    # Find your key hash
    ls ~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys/
-   
+
    # Create symlink (replace HASH with your key's hash)
    ln -sf ~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys/HASH.pub ~/.ssh/secretive.pub
    ```
+
 4. **Add to GitHub**: https://github.com/settings/ssh/new (both authentication AND signing)
 5. **Add to secrets** for remote host access:
    ```bash
@@ -64,6 +66,7 @@ An activation script runs on every `darwin-rebuild switch` or `home-manager swit
 ### macOS (Builder Key)
 
 For automated builds (Task A):
+
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_builder -N "" -C "builder@$(hostname)"
 ```
@@ -71,6 +74,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_builder -N "" -C "builder@$(hostname)
 ### Linux (NixOS)
 
 Generate a regular ed25519 key:
+
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -C "user@hostname"
 ```
@@ -80,6 +84,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -C "user@hostname"
 ### macOS (nix-darwin)
 
 Enable in host config (e.g., `hosts/serious-callers-only/default.nix`):
+
 ```nix
 services.sshd = {
   enable = true;
@@ -102,22 +107,24 @@ Standard NixOS sshd configuration applies.
 Location: `modules/home/ssh.nix`
 
 Key features:
+
 - Secretive agent socket set via `SSH_AUTH_SOCK` environment variable
 - Per-host matchBlocks for: `serious-callers-only`, `just-testing`, `sleeper-service`
 - Builder-specific hosts (`*-builder`) use passphraseless key for automation
-- Git signing configured via `modules/home/git.nix`
+- Git signing configured via chezmoi (`chezmoi/dot_gitconfig.tmpl`)
 
 ## Secrets Structure
 
 ```yaml
 # secrets/secrets.yaml
 ssh:
-  authorized_key_secretive: 'ecdsa-sha2-nistp256 AAAA... user@host'
-  authorized_key_builder: 'ssh-ed25519 AAAA... builder@host'
-  authorized_key_yubikey: 'sk-ssh-ed25519@openssh.com AAAA... user@host'
+  authorized_key_secretive: "ecdsa-sha2-nistp256 AAAA... user@host"
+  authorized_key_builder: "ssh-ed25519 AAAA... builder@host"
+  authorized_key_yubikey: "sk-ssh-ed25519@openssh.com AAAA... user@host"
 ```
 
 Declared in `modules/darwin/secrets.nix`:
+
 ```nix
 sops.secrets."ssh/authorized_key_secretive" = { mode = "0444"; };
 sops.secrets."ssh/authorized_key_builder" = { mode = "0444"; };
@@ -141,6 +148,7 @@ ssh just-testing-builder
 ## Troubleshooting
 
 ### SSH not using Secretive
+
 ```bash
 # Check agent socket
 echo $SSH_AUTH_SOCK
@@ -154,16 +162,20 @@ ssh-add -l
 ```
 
 ### Permission denied (publickey)
+
 1. Check if your public key is on GitHub / remote host
 2. Verify symlink exists: `ls -la ~/.ssh/secretive.pub`
 3. Check correct key is in agent: `ssh-add -L`
 4. Verify secrets deployed: `sudo cat /run/secrets/ssh/authorized_key_secretive`
 
 ### Secretive not in Applications
+
 Secretive must be in `/Applications` to access Secure Enclave. It's installed via Homebrew cask, not nixpkgs.
 
 ### Multiple Secretive keys
+
 If you have multiple keys, ensure the symlink points to the correct one:
+
 ```bash
 # List all keys
 ls ~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys/
@@ -176,6 +188,7 @@ ssh-keygen -lf ~/.ssh/secretive.pub
 ```
 
 ### Git signing fails
+
 ```bash
 # Ensure SSH_AUTH_SOCK is set
 export SSH_AUTH_SOCK=~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh

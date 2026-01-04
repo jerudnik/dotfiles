@@ -1,0 +1,98 @@
+# Git Configuration
+# Managed by chezmoi
+
+[user]
+    name = John Rudnik
+    email = john.rudnik@gmail.com
+{{- if .isDarwin }}
+    signingkey = ~/.ssh/secretive.pub
+{{- else }}
+    signingkey = ~/.ssh/id_ed25519.pub
+{{- end }}
+
+[gpg]
+    format = ssh
+
+[gpg "ssh"]
+    allowedSignersFile = ~/.ssh/allowed_signers
+
+[commit]
+    gpgsign = true
+
+[tag]
+    gpgsign = true
+
+[core]
+    pager = delta
+    excludesfile = ~/.config/git/ignore
+    autocrlf = input
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true
+    side-by-side = true
+    line-numbers = true
+    syntax-theme = base16
+
+[merge]
+    conflictstyle = diff3
+
+[diff]
+    colorMoved = default
+
+[init]
+    defaultBranch = main
+
+[github]
+    user = jerudnik
+
+[credential]
+    helper = osxkeychain
+
+[push]
+    autoSetupRemote = true
+
+[pull]
+    rebase = true
+
+[rebase]
+    autoStash = true
+
+[fetch]
+    prune = true
+
+[url "git@github.com:"]
+    insteadOf = gh:
+
+[url "https://github.com/"]
+    insteadOf = github:
+
+[alias]
+    st = status
+    s = status -sb
+    co = checkout
+    br = branch
+    sw = switch
+    ci = commit
+    cm = commit -m
+    ca = commit --amend
+    amend = commit --amend --no-edit
+    cob = checkout -b
+    swc = switch -c
+    a = add
+    aa = add --all
+    ap = add --patch
+    unstage = reset HEAD --
+    d = diff
+    ds = diff --staged
+    dc = diff --cached
+    lg = log --oneline --graph --decorate
+    last = log -1 HEAD
+    hist = log --pretty=format:'%h %ad | %s%d [%an]' --graph --date=short
+    undo = reset --soft HEAD~1
+    stash-all = stash save --include-untracked
+    please = push --force-with-lease
+    upstream = !git push -u origin $(git branch --show-current)
+    cleanup = "!git branch --merged | grep -Ev '^\\*|main|master' | xargs -n 1 git branch -d"

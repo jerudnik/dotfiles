@@ -35,12 +35,5 @@
   # Let Home Manager install and manage itself
   programs.home-manager.enable = true;
 
-  # ============================================================
-  # Editor Configuration
-  # ============================================================
-
-  # Emacs - knowledge management and programmable notes
-  programs.myEmacs.enable = true;
-
   # mac-app-util is enabled via flake.nix sharedModules + hosts/common/darwin
 }

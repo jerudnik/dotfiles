@@ -1,0 +1,320 @@
+{{- /*
+  OpenCode configuration template
+  MCP servers are injected from chezmoidata.json via .opencode_mcp_config
+*/ -}}
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false,
+  "model": "anthropic/claude-opus-4-5",
+
+  "plugin": [
+    "opencode-antigravity-auth@latest",
+    "@franlol/opencode-md-table-formatter@latest",
+    "@nick-vi/opencode-type-inject@latest",
+    "@tarquinen/opencode-dcp@latest"
+  ],
+
+  "permission": {
+    "edit": "allow",
+    "webfetch": "allow",
+    "external_directory": "ask",
+    "doom_loop": "ask",
+    "bash": {
+      "*": "ask",
+      "ls": "allow",
+      "ls *": "allow",
+      "pwd": "allow",
+      "cd *": "allow",
+      "tree": "allow",
+      "tree *": "allow",
+      "stat *": "allow",
+      "file *": "allow",
+      "which *": "allow",
+      "type *": "allow",
+      "realpath *": "allow",
+      "dirname *": "allow",
+      "basename *": "allow",
+      "cat *": "allow",
+      "head *": "allow",
+      "tail *": "allow",
+      "less *": "allow",
+      "more *": "allow",
+      "bat *": "allow",
+      "find *": "allow",
+      "grep *": "allow",
+      "rg *": "allow",
+      "ag *": "allow",
+      "ack *": "allow",
+      "fd *": "allow",
+      "fzf *": "allow",
+      "wc *": "allow",
+      "sort *": "allow",
+      "uniq *": "allow",
+      "diff *": "allow",
+      "colordiff *": "allow",
+      "comm *": "allow",
+      "cut *": "allow",
+      "awk *": "allow",
+      "sed *": "allow",
+      "tr *": "allow",
+      "xargs *": "allow",
+      "jq *": "allow",
+      "yq *": "allow",
+      "git *": "allow",
+      "nix fmt": "allow",
+      "nix fmt *": "allow",
+      "nix flake check": "allow",
+      "nix flake check *": "allow",
+      "nix flake update": "allow",
+      "nix flake update *": "allow",
+      "nix build *": "allow",
+      "nix develop": "allow",
+      "nix develop *": "allow",
+      "nix eval *": "allow",
+      "nix repl *": "allow",
+      "nixfmt *": "allow",
+      "whoami": "allow",
+      "id": "allow",
+      "id *": "allow",
+      "uptime": "allow",
+      "date": "allow",
+      "date *": "allow",
+      "echo *": "allow",
+      "printf *": "allow",
+      "env": "allow",
+      "printenv": "allow",
+      "printenv *": "allow",
+      "uname": "allow",
+      "uname *": "allow",
+      "hostname": "allow",
+      "df *": "allow",
+      "du *": "allow",
+      "free *": "allow",
+      "top *": "allow",
+      "ps *": "allow",
+      "lsof *": "allow",
+      "ping -c *": "allow",
+      "ping *": "ask",
+      "dig *": "allow",
+      "nslookup *": "allow",
+      "host *": "allow",
+      "curl *": "allow",
+      "wget *": "allow",
+      "nc *": "ask",
+      "netcat *": "ask",
+      "ssh *": "ask",
+      "scp *": "ask",
+      "rsync *": "ask",
+      "rm *": "ask",
+      "rmdir *": "ask",
+      "trash *": "ask",
+      "sudo *": "ask",
+      "chmod *": "ask",
+      "chown *": "ask",
+      "chgrp *": "ask",
+      "kill *": "ask",
+      "pkill *": "ask",
+      "killall *": "ask",
+      "mv *": "ask",
+      "cp *": "ask",
+      "ln *": "ask",
+      "mkdir *": "ask"
+    }
+  },
+
+  "lsp": {
+    "marksman": {
+      "command": ["marksman", "server"],
+      "extensions": [".md", ".markdown"]
+    }
+  },
+
+  "agent": {
+    "build": {
+      "mode": "primary",
+      "model": "anthropic/claude-opus-4-5",
+      "description": "Primary build agent using Claude Opus 4.5 via Claude Pro subscription"
+    },
+    "plan": {
+      "mode": "primary",
+      "model": "google/claude-opus-4-5-thinking-medium",
+      "description": "Planning agent using Claude Opus 4.5 with thinking via Antigravity",
+      "tools": { "write": false, "edit": false, "bash": false }
+    },
+    "general": {
+      "mode": "subagent",
+      "model": "opencode/glm-4.7-free",
+      "description": "General-purpose subagent using GLM 4.7 via OpenCode Zen (free)"
+    },
+    "explore": {
+      "mode": "subagent",
+      "model": "opencode/glm-4.7-free",
+      "description": "Fast codebase exploration using GLM 4.7 via OpenCode Zen (free)"
+    },
+    "deep-thinker": {
+      "mode": "subagent",
+      "model": "opencode/gpt-5.1-codex-max",
+      "description": "Deep reasoning agent using GPT-5.1 Codex Max via OpenCode Zen"
+    },
+    "no-dumb-questions": {
+      "mode": "subagent",
+      "model": "opencode/big-pickle",
+      "description": "Quick questions agent using Big Pickle via OpenCode Zen (free)"
+    },
+    "nix-expert": {
+      "mode": "subagent",
+      "model": "opencode/gpt-5.1-codex-max",
+      "description": "Nix/NixOS/nix-darwin/home-manager specialist",
+      "prompt": "You are a Nix expert specializing in:\n- nix-darwin module development\n- home-manager configurations\n- Flake-based setups\n- NixOS options and services\n\nAlways:\n- Use lib.mkOption with proper types for module options\n- Use lib.mkIf for conditional configuration\n- Use lib.mkEnableOption for boolean enable flags\n- Follow nixfmt-rfc-style formatting conventions\n- Use the mcp-nixos tools for documentation lookups when needed\n\nWhen writing modules, follow patterns from modules/darwin/services/*.nix"
+    },
+    "docs-writer": {
+      "mode": "subagent",
+      "model": "opencode/glm-4.7-free",
+      "description": "Technical documentation and markdown specialist",
+      "prompt": "You are a technical documentation writer. Create clear, concise docs.\n\nFor this nix-darwin/home-manager repository:\n- Document options with types, defaults, and examples\n- Use proper markdown formatting\n- Follow the style of existing documentation\n- Include code examples with proper Nix syntax\n\nKeep documentation minimal but complete.",
+      "tools": { "write": true, "edit": true, "bash": false }
+    },
+    "local-builder": {
+      "mode": "subagent",
+      "model": "ollama/qwen3-coder:30b",
+      "description": "Local code builder using Qwen3-Coder 30B on M3 Ultra",
+      "prompt": "You are a local code generation assistant running on a Mac Studio M3 Ultra.\nYour role is to draft code implementations quickly and efficiently.\n\nGuidelines:\n- Write complete, working implementations\n- Follow the patterns established in this codebase\n- Include comments for complex logic\n- Your output may be reviewed by a cloud model, so focus on functionality\n- For Nix code, follow nixfmt-rfc-style conventions"
+    },
+    "local-analyst": {
+      "mode": "subagent",
+      "model": "ollama/devstral:123b",
+      "description": "Deep code analysis using Devstral-2 123B locally",
+      "prompt": "You are a code analysis expert running locally on powerful hardware.\nPerform thorough analysis of code structure, patterns, and potential issues.\n\nFocus on:\n- Architecture and design patterns\n- Potential bugs or edge cases\n- Performance considerations\n- Security implications\n\nTake your time - quality matters more than speed for analysis tasks.",
+      "tools": { "write": false, "edit": false, "bash": false }
+    },
+    "local-reasoner": {
+      "mode": "subagent",
+      "model": "ollama/deepseek-r1:70b",
+      "description": "Local reasoning agent using DeepSeek R1 70B",
+      "prompt": "You are a reasoning assistant for complex problem-solving.\nUse chain-of-thought reasoning to break down problems systematically.\n\nYour strengths:\n- Multi-step logical reasoning\n- Mathematical and algorithmic thinking\n- Planning complex implementations\n- Analyzing tradeoffs and alternatives\n\nThink step-by-step and show your reasoning process.",
+      "tools": { "write": false, "edit": false, "bash": false }
+    },
+    "reviewer": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-5",
+      "description": "Code reviewer using Claude Opus 4.5 - reviews and refines code",
+      "prompt": "Review the code or plan provided and offer constructive feedback.\n\nFocus on:\n- Correctness and potential bugs\n- Best practices and idiomatic patterns\n- Security considerations\n- Suggestions for improvement\n\nYou have edit/write access - apply your suggestions directly when appropriate.\nBe concise but thorough. For Nix code, ensure nixfmt-rfc-style compliance.",
+      "tools": { "write": true, "edit": true, "bash": false }
+    }
+  },
+
+  "command": {
+    "check": {
+      "template": "Run `nix flake check` and analyze the output.\nIf there are errors or warnings, explain what's wrong and suggest fixes.\nIf everything passes, confirm the configuration is valid.",
+      "description": "Validate the flake configuration",
+      "agent": "build"
+    },
+    "apply": {
+      "template": "Apply the nix-darwin configuration:\n1. First run `nix flake check` to validate\n2. If check passes, run `sudo darwin-rebuild switch --flake .`\n3. Report success or diagnose any errors\n\nAdditional context: $ARGUMENTS",
+      "description": "Build and apply nix-darwin configuration",
+      "agent": "build"
+    },
+    "update": {
+      "template": "Update flake inputs:\n1. Run `nix flake update`\n2. Show the diff of flake.lock using `git diff flake.lock`\n3. Summarize what inputs changed and their new versions",
+      "description": "Update flake inputs and show changes",
+      "agent": "build"
+    },
+    "add-mcp": {
+      "template": "Help add a new MCP server named \"$ARGUMENTS\" to this configuration:\n1. Determine if it's a local or remote MCP server\n2. Research the server if needed using web search\n3. Add it to modules/home/ai/mcp.nix following existing patterns\n4. If it needs an API key, explain how to add it to sops secrets",
+      "description": "Add a new MCP server",
+      "agent": "nix-expert"
+    },
+    "add-package": {
+      "template": "Add the package \"$ARGUMENTS\" to this configuration:\n1. Search nixpkgs for the package\n2. Determine the appropriate location:\n   - CLI tools go in modules/home/packages.nix\n   - GUI apps go in modules/darwin/homebrew.nix as casks\n3. Add it following existing patterns in that file",
+      "description": "Add a package to the configuration",
+      "agent": "nix-expert"
+    },
+    "add-service": {
+      "template": "Create a new launchd service for \"$ARGUMENTS\":\n1. Create modules/darwin/services/$ARGUMENTS.nix\n2. Follow the pattern from existing services like ollama.nix\n3. Include proper options (enable, port, package, etc.)\n4. Import it in modules/darwin/default.nix",
+      "description": "Create a new launchd service",
+      "agent": "nix-expert"
+    },
+    "review": {
+      "template": "Review the current git changes:\n1. Show `git diff` for unstaged changes\n2. Show `git diff --cached` for staged changes\n3. Provide a detailed code review focusing on:\n   - Correctness and potential bugs\n   - Nix best practices\n   - Security considerations\n\nFocus area: $ARGUMENTS",
+      "description": "Review current git changes",
+      "agent": "build"
+    }
+  },
+
+  "provider": {
+    "opencode": {
+      "options": {
+        "apiKey": "{env:OPENCODE_API_KEY}"
+      }
+    },
+    "google": {
+      "models": {
+        "gemini-3-pro-low": {
+          "name": "Gemini 3 Pro Low (Antigravity)",
+          "limit": { "context": 1048576, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "gemini-3-pro-high": {
+          "name": "Gemini 3 Pro High (Antigravity)",
+          "limit": { "context": 1048576, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "gemini-3-flash": {
+          "name": "Gemini 3 Flash (Antigravity)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "claude-sonnet-4-5": {
+          "name": "Claude Sonnet 4.5 (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "claude-sonnet-4-5-thinking-low": {
+          "name": "Claude Sonnet 4.5 Thinking Low (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "claude-sonnet-4-5-thinking-medium": {
+          "name": "Claude Sonnet 4.5 Thinking Medium (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "claude-sonnet-4-5-thinking-high": {
+          "name": "Claude Sonnet 4.5 Thinking High (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "claude-opus-4-5-thinking-low": {
+          "name": "Claude Opus 4.5 Thinking Low (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "claude-opus-4-5-thinking-medium": {
+          "name": "Claude Opus 4.5 Thinking Medium (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "claude-opus-4-5-thinking-high": {
+          "name": "Claude Opus 4.5 Thinking High (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "gpt-oss-120b-medium": {
+          "name": "GPT-OSS 120B Medium (Antigravity)",
+          "limit": { "context": 131072, "output": 32768 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        }
+      }
+    },
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {}
+    }
+  },
+
+  "mcp": {{ .opencode_mcp_config | toPrettyJson | indent 2 | trim }}
+}

@@ -53,7 +53,8 @@
         gaps_in = 6;
         gaps_out = 12;
         border_size = 2;
-        "col.active_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base0D}ff) rgba(${config.lib.stylix.colors.base0B}ff) 45deg";
+        "col.active_border" =
+          lib.mkForce "rgba(${config.lib.stylix.colors.base0D}ff) rgba(${config.lib.stylix.colors.base0B}ff) 45deg";
         "col.inactive_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base03}aa)";
         layout = "dwindle";
         allow_tearing = false;

@@ -82,6 +82,7 @@
     # ============================================================
     tealdeer # Fast tldr client in Rust (simplified man pages)
     just # Modern make alternative
+    chezmoi
 
   ];
 

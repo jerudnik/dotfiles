@@ -1,0 +1,43 @@
+# Global gitignore
+# Managed by chezmoi
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Thumbnails
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-*
+
+# Nix
+result
+result-*
+
+# Direnv / env files
+.direnv/
+.env
+.env.local
+.envrc
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Logs
+*.log

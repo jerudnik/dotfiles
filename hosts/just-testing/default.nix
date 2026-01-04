@@ -50,13 +50,6 @@
   services.tailscale.enable = true;
 
   # ============================================================
-  # Editor Services
-  # ============================================================
-
-  # Emacs - daemon mode for instant startup
-  services.emacs-daemon.enable = true;
-
-  # ============================================================
   # AI Services - DISABLED on MacBook Air
   # ============================================================
   # This machine does not run local AI models

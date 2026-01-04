@@ -1,0 +1,12 @@
+# Files managed by Nix, not chezmoi
+.config/chezmoi/chezmoidata.json
+
+# Editor artifacts
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Nix artifacts
+result
+result-*

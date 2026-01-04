@@ -45,6 +45,6 @@
     ai = "opencode run";
   };
 
-  # Ensure MCP memory directory exists
-  home.file."Projects/mcp-memory/.gitkeep".text = "";
+  # Ensure MCP memory directory exists (matches mcp.nix default path)
+  home.file."Utility/mcp-memory/.gitkeep".text = "";
 }

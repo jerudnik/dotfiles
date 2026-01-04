@@ -19,5 +19,6 @@
     ./development.nix
     ./python-tools.nix
     ./ai
+    ./chezmoi-bridge.nix
   ];
 }

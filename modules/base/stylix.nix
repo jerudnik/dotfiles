@@ -69,7 +69,10 @@ in
   };
 
   options.themes.mode = lib.mkOption {
-    type = lib.types.enum [ "light" "dark" ];
+    type = lib.types.enum [
+      "light"
+      "dark"
+    ];
     default = "dark";
     description = "Theme variant to use (light or dark).";
   };

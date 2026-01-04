@@ -704,6 +704,6 @@ in
   # Install OpenCode
   home.packages = with pkgs; [ opencode ];
 
-  # Generate OpenCode configuration
-  xdg.configFile."opencode/opencode.json".text = builtins.toJSON opencodeConfig;
+  # Configuration is managed by chezmoi via chezmoi-bridge.nix
+  # Template at: chezmoi/dot_config/opencode/opencode.json.tmpl
 }

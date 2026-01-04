@@ -1,0 +1,5 @@
+{{- /*
+  Cursor MCP configuration template
+  MCP servers are injected from chezmoidata.json via .cursor_config
+*/ -}}
+{{ .cursor_config | toPrettyJson }}

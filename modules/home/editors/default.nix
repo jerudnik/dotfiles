@@ -8,7 +8,6 @@
 
 {
   imports = [
-    ./helix.nix
-    ./emacs
+    ./neovim.nix
   ];
 }

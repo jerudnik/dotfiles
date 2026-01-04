@@ -8,11 +8,11 @@ Enables unattended system configuration updates without interactive password pro
 
 ### Overview
 
-| Aspect      | Detail                                                       |
-| ----------- | ------------------------------------------------------------ |
-| **Module**  | `modules/darwin/sudo.nix`                                    |
-| **Scope**   | Only `darwin-rebuild` is passwordless (not full sudo)        |
-| **Users**   | Applied to `config.system.primaryUser` (john on serious-callers-only, jrudnik on just-testing) |
+| Aspect     | Detail                                                                                         |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| **Module** | `modules/darwin/sudo.nix`                                                                      |
+| **Scope**  | Only `darwin-rebuild` is passwordless (not full sudo)                                          |
+| **Users**  | Applied to `config.system.primaryUser` (john on serious-callers-only, jrudnik on just-testing) |
 
 ### What This Enables
 
@@ -100,6 +100,7 @@ determinate-nix.customSettings = {
 ### Performance
 
 Expected speedup: **2-3.7x** on evaluation-heavy operations:
+
 - `nix flake check`
 - `nix search`
 - `nix eval`
@@ -130,11 +131,13 @@ Then apply: `sudo darwin-rebuild switch --flake .`
 For remote builds and automation, a dedicated passphraseless SSH key is available.
 
 See [SSH Documentation](ssh.md) for details on:
+
 - Builder key location (`~/.ssh/id_ed25519_builder`)
 - Host aliases (`<hostname>-builder`)
 - Server configuration
 
 ### Remote builder options (Determinate Nix)
+
 - `nix.linux-builder` module is blocked (Determinate Nix sets `nix.enable = false`).
 - Use ad-hoc `--builders` with the builder key, or run a Linux VM (OrbStack/UTM) as SSH builder.
 - Binary cache integration: see [binary-cache.md](binary-cache.md) for using Harmonia in CI/automation.

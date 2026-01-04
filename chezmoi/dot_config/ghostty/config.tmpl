@@ -1,0 +1,90 @@
+# Ghostty Terminal Configuration
+# Managed by chezmoi - theme colors from Stylix
+
+# =========================================
+# FONTS
+# =========================================
+font-family = {{ .font.monospace }}
+font-size = {{ .font.size }}
+
+# =========================================
+# COLORS (from Stylix)
+# =========================================
+background = {{ .stylix.base00 }}
+foreground = {{ .stylix.base05 }}
+cursor-color = {{ .stylix.base05 }}
+cursor-text = {{ .stylix.base00 }}
+selection-background = {{ .stylix.base02 }}
+selection-foreground = {{ .stylix.base05 }}
+
+# 16-color palette
+palette = 0={{ .stylix.base00 }}
+palette = 1={{ .stylix.base08 }}
+palette = 2={{ .stylix.base0B }}
+palette = 3={{ .stylix.base0A }}
+palette = 4={{ .stylix.base0D }}
+palette = 5={{ .stylix.base0E }}
+palette = 6={{ .stylix.base0C }}
+palette = 7={{ .stylix.base05 }}
+palette = 8={{ .stylix.base03 }}
+palette = 9={{ .stylix.base08 }}
+palette = 10={{ .stylix.base0B }}
+palette = 11={{ .stylix.base0A }}
+palette = 12={{ .stylix.base0D }}
+palette = 13={{ .stylix.base0E }}
+palette = 14={{ .stylix.base0C }}
+palette = 15={{ .stylix.base07 }}
+
+# =========================================
+# WINDOW
+# =========================================
+window-padding-x = 8
+window-padding-y = 8
+window-decoration = auto
+confirm-close-surface = false
+
+# =========================================
+# BEHAVIOR
+# =========================================
+copy-on-select = clipboard
+mouse-hide-while-typing = true
+focus-follows-mouse = true
+
+# =========================================
+# KEYBINDS
+# =========================================
+keybind = super+d=new_split:right
+keybind = super+shift+d=new_split:down
+keybind = super+shift+enter=new_window
+keybind = super+shift+t=new_tab
+keybind = super+shift+w=close_surface
+keybind = super+physical:one=goto_tab:1
+keybind = super+physical:two=goto_tab:2
+keybind = super+physical:three=goto_tab:3
+keybind = super+physical:four=goto_tab:4
+keybind = super+physical:five=goto_tab:5
+keybind = super+physical:six=goto_tab:6
+keybind = super+physical:seven=goto_tab:7
+keybind = super+physical:eight=goto_tab:8
+keybind = super+physical:nine=goto_tab:9
+keybind = super+ctrl+left=goto_split:left
+keybind = super+ctrl+right=goto_split:right
+keybind = super+ctrl+up=goto_split:top
+keybind = super+ctrl+down=goto_split:bottom
+
+{{ if .isDarwin -}}
+# =========================================
+# macOS SPECIFIC
+# =========================================
+shell-integration = zsh
+shell-integration-features = cursor,sudo,title
+macos-option-as-alt = true
+{{- end }}
+
+{{ if .isLinux -}}
+# =========================================
+# LINUX SPECIFIC
+# =========================================
+shell-integration = zsh
+gtk-single-instance = true
+{{- end }}

@@ -3,42 +3,53 @@
 Parsimony first: this is the minimal, accurate setup for OpenCode with Yubikey-backed secrets across macOS (nix-darwin) and NixOS.
 
 ## Quick Start (checklist)
-1) `nix develop`
-2) `age-plugin-yubikey` → save identity to `~/.config/sops/age/yubikey-identity.txt`
-3) Add public key to `.sops.yaml` (keys + creation_rules)
-4) `SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets.yaml` → add `api_keys/*`
-5) Declare secrets per host (owner matches user)
-6) Run `scripts/setup.sh` for preflight checks (SSH key, sops age key, Yubikey, sops)
-7) Apply: `apply` (macOS) or `sudo nixos-rebuild switch --flake .`
-8) New terminal → verify `OPENCODE_API_KEY` and `opencode --version`
+
+1. `nix develop`
+2. `age-plugin-yubikey` → save identity to `~/.config/sops/age/yubikey-identity.txt`
+3. Add public key to `.sops.yaml` (keys + creation_rules)
+4. `SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets.yaml` → add `api_keys/*`
+5. Declare secrets per host (owner matches user)
+6. Run `scripts/setup.sh` for preflight checks (SSH key, sops age key, Yubikey, sops)
+7. Apply: `apply` (macOS) or `sudo nixos-rebuild switch --flake .`
+8. New terminal → verify `OPENCODE_API_KEY` and `opencode --version`
 
 ## Prerequisites
+
 - Yubikey with PIV support
 - Nix flakes enabled; this repo cloned
 - Dev shell: `nix develop` (provides age-plugin-yubikey, yubikey-manager, sops, age)
 
 ## One-Time Yubikey + sops Setup
-1) Enter dev shell
+
+1. Enter dev shell
+
 ```bash
 cd ~/Projects/dotfiles
 nix develop
 ```
-2) Initialize Yubikey and save identity
+
+2. Initialize Yubikey and save identity
+
 ```bash
 age-plugin-yubikey           # run wizard
 mkdir -p ~/.config/sops/age
 age-plugin-yubikey --identity > ~/.config/sops/age/yubikey-identity.txt
 chmod 600 ~/.config/sops/age/yubikey-identity.txt
 ```
-3) Add public key to `.sops.yaml`
+
+3. Add public key to `.sops.yaml`
+
 - Add the `age1yubikey...` key under `keys:` and in the `creation_rules` for `secrets.yaml`.
 
-4) Edit encrypted secrets (touch required)
+4. Edit encrypted secrets (touch required)
+
 ```bash
 cd secrets
 SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets.yaml
 ```
+
 Add your keys, e.g.:
+
 ```yaml
 api_keys:
   opencode_zen: "op-api-key"
@@ -46,7 +57,9 @@ api_keys:
 ```
 
 ## Declare Secrets (per host/user)
+
 Set owner per host to match the local username.
+
 ```nix
 # hosts/serious-callers-only/default.nix (john)
 sops.secrets = {
@@ -59,10 +72,13 @@ sops.secrets = {
   "api_keys/opencode_zen" = { owner = "jrudnik"; mode = "0400"; };
 };
 ```
+
 NixOS: declare in `modules/nixos/secrets.nix` (uses host-derived age key at `/var/lib/sops-nix/key.txt`).
 
 ## Load Into Environment
+
 `modules/home/ai/environment.nix` loads secrets into shell on login:
+
 ```nix
 programs.zsh.initExtra = ''
   if [[ -r /run/secrets/api_keys/opencode_zen ]]; then
@@ -70,9 +86,11 @@ programs.zsh.initExtra = ''
   fi
 '';
 ```
+
 Aliases: `oc` (opencode), `ai` (opencode run).
 
 ## Apply Configuration
+
 ```bash
 # macOS
 apply  # or: sudo darwin-rebuild switch --flake .
@@ -80,9 +98,11 @@ apply  # or: sudo darwin-rebuild switch --flake .
 # NixOS
 sudo nixos-rebuild switch --flake .
 ```
+
 Open a new terminal so env vars load.
 
 ## Verify
+
 ```bash
 echo $OPENCODE_API_KEY
 cat /run/secrets/api_keys/opencode_zen
@@ -91,6 +111,7 @@ opencode --version
 ```
 
 ## Environment Variables (need-to-know)
+
 - `OPENCODE_API_KEY` (secret) – from `/run/secrets/api_keys/opencode_zen`
 - `GITHUB_PERSONAL_ACCESS_TOKEN` (secret) – from `/run/secrets/api_keys/github_token`
 - `CONTEXT7_API_KEY` (secret) – from `/run/secrets/api_keys/context7`
@@ -99,6 +120,7 @@ opencode --version
 - `OLLAMA_HOST` – e.g. `http://100.x.y.z:11434` for remote Ollama (see `docs/ai-server.md`)
 
 ## MCP Servers (where to configure)
+
 - Definitions: `modules/home/ai/mcp.nix`
 - Deployment strategies:
   - `remote`: Third-party hosted SSE endpoints (context7, exa)
@@ -109,12 +131,38 @@ opencode --version
 - Default memory storage: `~/Utility/mcp-memory/memory.jsonl` (directory ensured by the config)
 - Clients: enable in `modules/home/ai/default.nix`
 
+### Computed Partial Strategy
+
+MCP configurations use a "Computed Partial" approach:
+
+1. **Nix computes**: Server definitions, secret paths, and transformations live in `modules/home/ai/mcp.nix`
+2. **Bridge exports**: `modules/home/chezmoi-bridge.nix` exports computed configs to `~/.config/chezmoi/chezmoidata.json`
+3. **Chezmoi templates**: Templates in `chezmoi/dot_config/opencode/`, `chezmoi/dot_cursor/`, and `chezmoi/private_Library/.../Claude/` inject the pre-computed JSON
+
+This keeps infrastructure logic in Nix while allowing rapid iteration on client-specific settings in chezmoi templates.
+
+### Adding/Updating MCP Servers
+
+```bash
+# 1. Define server in modules/home/ai/mcp.nix
+# 2. Add any required secrets to secrets/secrets.yaml
+# 3. Apply Nix config (regenerates chezmoidata.json)
+apply
+
+# 4. Apply chezmoi templates (updates OpenCode/Claude/Cursor configs)
+chezmoi apply
+```
+
+See `docs/chezmoi.md` for full template variable reference.
+
 ## Troubleshooting
+
 - **"no identity matched"**: Yubikey plugged, identity file present, `.sops.yaml` contains your key.
 - **Secrets missing in /run/secrets**: verify declarations in `modules/darwin/secrets.nix` or `modules/nixos/secrets.nix`; re-apply.
 - **Env var empty**: open a new terminal; confirm file ownership matches user.
 - **Yubikey touch prompt absent**: ensure `IdentityAgent = "none"` per-host in `modules/home/ssh.nix`; use Nix openssh (`which ssh` → `/etc/profiles/per-user/.../ssh`).
 
 ## Notes
+
 - Backup Yubikey: not configured here; set up later as separate task.
 - This doc supersedes the old `ai-environment-variables.md` (merged).

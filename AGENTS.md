@@ -3,98 +3,149 @@
 ## Build Commands
 
 ```bash
-# Apply configuration (requires sudo)
-apply                                    # Dev shell alias
-sudo darwin-rebuild switch --flake .     # Direct command
+# Basic (run from dev shell: nix develop)
+apply                                    # Apply configuration (requires sudo)
+update                                   # Update flake inputs
+nix fmt                                  # Format code (nixfmt + prettier)
 
-# Update flake inputs
-update                                   # Dev shell alias
-nix flake update                         # Direct command
+# Validation
+nix flake check                          # Validate all configurations
+darwin-rebuild check --flake .           # Dry-run darwin (no changes)
+nixos-rebuild dry-build --flake .        # Dry-run NixOS
 
-# Format code (treefmt: nixfmt + prettier)
-nix fmt
+# Component testing
+nix build .#darwinConfigurations.serious-callers-only.system
+nix eval .#darwinConfigurations.serious-callers-only.config.services.ollama.enable
 
-# Check flake validity
-nix flake check
-
-# Enter development shell (provides apply, update, sops, age)
-nix develop
+# Exploration
+nix repl --expr 'builtins.getFlake "."'  # Interactive REPL
 ```
 
-There are no tests in this repository. Validation is done via `nix flake check` and successful `apply`.
+There are no tests. Validation is via `nix flake check` and successful `apply`.
 
-## Directory Map (need-to-know)
+## Directory Map
 
-- `flake.nix` / `flake.lock` – inputs/outputs
-- `hosts/` – per-host configs
-  - `common/{darwin,nixos}/default.nix`
-  - `serious-callers-only/default.nix` (serious-callers-only)
-  - `just-testing/default.nix` (just-testing)
-  - `sleeper-service/default.nix` (Pixelbook, NixOS)
-- `modules/`
-  - `base/` – stylix (fonts, themes)
-  - `darwin/` – system, homebrew, secrets, services (ollama, whisper, tailscale, sshd, emacs, harmonia, linux-builder)
-  - `nixos/` – desktop (hyprland, launcher, lock, notifications, waybar, darkman), security, system, secrets
-  - `home/` – ai, apps (incl. linux), editors, shell (atuin, navi, zsh plugins), terminal (ghostty), git, packages, ssh, development (direnv+sops)
-- `users/{john,jrudnik}/` – user home-manager configs
-- `themes/` – base16 schemes (atelier, gruvbox, tomorrow, nano, nord, modus)
-- `scripts/` – utility scripts (`setup.sh` preflight/apply helper; `theme-switch.sh` for darkman auto-switching)
-- `secrets/` – `.sops.yaml`, `secrets.yaml`
+- `flake.nix` / `flake.lock` – Inputs and outputs
+- `hosts/` – Per-host configs (`serious-callers-only`, `just-testing`, `sleeper-service`)
+- `modules/base/` – Cross-platform (stylix theming)
+- `modules/darwin/` – macOS system, homebrew, secrets, services
+- `modules/nixos/` – NixOS desktop, security, system
+- `modules/home/` – Home-manager: ai, apps, editors, shell, terminal, packages
+- `users/` – User home-manager configs
+- `themes/` – Base16 color schemes
+- `secrets/` – sops-nix encrypted secrets
 
 ## Code Style
 
-- Formatter: `nix fmt` (treefmt-nix wrapper: nixfmt-rfc-style + prettier for md/yaml/json)
-- Module form: `{ config, pkgs, lib, ... }: { ... }`
-- Conventions: 2-space indent; trailing commas; double quotes; `with pkgs; [ ... ]` for package lists
-- Options: `lib.mkOption`, `lib.mkIf`, `lib.mkDefault`, `lib.mkEnableOption`
-- Service pattern: see `modules/darwin/services/ollama.nix`
+**Formatter**: `nix fmt` runs treefmt (nixfmt-rfc-style for `.nix`, prettier for md/yaml/json)
+
+**Module signature** (required):
+
+```nix
+{ config, pkgs, lib, ... }:
+```
+
+**Comment styles** (required):
+
+```nix
+# File header - Brief description
+# https://optional-reference-url
+
+# ============================================================
+# Major Section (use for grouping in large files)
+# ============================================================
+
+# Inline comment explaining non-obvious code
+someOption = value;
+```
+
+**Naming conventions**:
+
+- Files: kebab-case (`linux-builder.nix`)
+- Options: dot-separated hierarchy (`services.ollama.enable`)
+- Variables: camelCase for helpers (`enabledServers`)
+- Config alias: `cfg = config.services.servicename;`
+
+**Package lists**: Use section markers and inline comments:
+
+```nix
+home.packages = with pkgs; [
+  # ==== Category ====
+  package1  # Brief explanation
+  package2
+];
+```
+
+## Module Patterns
+
+**Service module template**:
+
+```nix
+# Service Name - Brief description
+# https://reference-url
+{ config, pkgs, lib, ... }:
+with lib;
+let
+  cfg = config.services.example;
+in
+{
+  options.services.example = {
+    enable = mkEnableOption "Example service";
+    port = mkOption { type = types.port; default = 8080; description = "Port for the service"; };
+  };
+  config = mkIf cfg.enable {
+    # Configuration here
+  };
+}
+```
+
+**Complete example**: `modules/darwin/services/ollama.nix`
+**Advanced patterns**: See `docs/nix-patterns.md`
+
+## Platform Differences
+
+| Aspect   | Darwin                  | NixOS                        |
+| -------- | ----------------------- | ---------------------------- |
+| Apply    | `darwin-rebuild switch` | `nixos-rebuild switch`       |
+| Services | `launchd.user.agents`   | `systemd.services`           |
+| Daemons  | `launchd.daemons`       | `systemd.services`           |
+| GUI Apps | `homebrew.casks`        | `environment.systemPackages` |
+| Arch     | `aarch64-darwin`        | `x86_64-linux`               |
+| User cfg | `users/*/home.nix`      | `users/*/home-linux.nix`     |
+
+## Boundaries
+
+**Always**: Run `nix flake check` before committing, run `nix fmt` to format changes,
+update `modules/*/default.nix` imports when adding modules, use nixpkgs over homebrew
+
+**Ask first**: Adding flake inputs, modifying `secrets/secrets.yaml`,
+changing `homebrew.onActivation` settings, modifying `system.stateVersion`
+
+**Never**: Edit `flake.lock` manually (use `nix flake update`), commit unencrypted secrets,
+remove module imports without checking references, use `x86_64-darwin` (this repo uses Apple Silicon)
+
+## Common Mistakes
+
+- **Missing import**: After creating a module, add it to `modules/*/default.nix`
+- **Platform paths**: Use `/Applications` on Darwin, `/usr/bin` on NixOS
+- **Home-manager contract**: Don't break `useGlobalPkgs = true` in host configs
+- **Architecture**: Darwin hosts are `aarch64-darwin`, not `x86_64-darwin`
 
 ## Secrets (sops-nix)
 
-- Encrypted with Yubikey-backed age (macOS) or host-derived age (NixOS)
-- Decrypts to `/run/secrets/...`
-- Declare in `modules/darwin/secrets.nix` or `modules/nixos/secrets.nix`
-- Edit: `SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets/secrets.yaml`
-- See `docs/ai-tools-setup.md` for full workflow
-- Smart SOPS with direnv: create `.envrc` with `use sops secrets.yaml` in project root; secrets auto-decrypt on `cd`
+Encrypted with Yubikey-backed age. Decrypts to `/run/secrets/...`. Declare in
+`modules/darwin/secrets.nix` or `modules/nixos/secrets.nix`. Workflow: `docs/ai-tools-setup.md`
 
-## MCP Servers (summary)
+## Integrations
 
-- Definitions: `modules/home/ai/mcp.nix`
-- Types: `remote`, `local-npx` (official TypeScript), `local-nix`, `local-uvx` (Python)
-- Preferred hierarchy: `local-npx` (official TS) → `local-nix` → `local-uvx` (Python tools)
-- Clients: enable in `modules/home/ai/default.nix`
-- Details and examples: `docs/ai-tools-setup.md`
+**Chezmoi**: Nix handles packages/services/themes, chezmoi handles dotfile templates.
+Bridge exports Stylix colors to `~/.config/chezmoi/chezmoidata.json`. See `docs/chezmoi.md`.
 
-## SSH (FIDO2 Yubikey)
+**MCP Servers**: Defined in `modules/home/ai/mcp.nix`. Types: `local-npx`, `local-nix`, `local-uvx`.
+Prefer `local-npx` for official TS servers. **SSH/Git**: FIDO2 Yubikey via `modules/home/ssh.nix`.
 
-- Client: `modules/home/ssh.nix` (per-host matchBlocks, uses Nix openssh)
-- Server: `modules/darwin/services/sshd.nix`
-- Hostnames: serious-callers-only, just-testing, sleeper-service (+ `.local`)
-- Critical fix: set `IdentityAgent = "none"` per host to bypass macOS agent
-- More: `docs/ssh.md`
+## Serena Integration
 
-## Git Signing (Yubikey over SSH)
-
-- `programs.git.signing = { key = "~/.ssh/id_ed25519_sk.pub"; signByDefault = true; };`
-- `gpg.format = "ssh"; gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";`
-
-## Common Patterns
-
-- Add package: `modules/home/packages.nix` (use nixpkgs when possible)
-- Add Homebrew cask: `modules/darwin/homebrew.nix`
-- Add service: create `modules/darwin/services/foo.nix`, import in `modules/darwin/default.nix`, enable in host
-- Add host: `hosts/<name>/default.nix`, then list in `flake.nix`
-- Add MCP server: define in `modules/home/ai/mcp.nix`, add secret if needed, apply
-- Add theme: create `themes/<name>.nix` using `mkScheme` pattern, add to `modules/base/stylix.nix`
-- Terminal: Ghostty is the default terminal (replaced wezterm); configure in `modules/home/terminal/ghostty.nix`
-- Shell tools: Atuin (history sync with daemon), Navi (cheatsheets), you-should-use (alias suggestions); configure in `modules/home/shell/`
-- Theme auto-switch: Use darkman service with `scripts/theme-switch.sh` for GeoIP-based light/dark switching
-- Font standardization: Configure fonts in `modules/base/stylix.nix`; iA Writer fonts available as `ia-writer-mono`, `ia-writer-duospace`, `ia-writer-quattro`; Phosphor icons available as custom package
-
-## Important Notes
-
-- Determinate Nix in use (nix.enable = false in darwin config)
-- nixpkgs: unstable
-- home-manager integrated via nix-darwin modules
-- Homebrew cleanup = "zap" (unlisted casks removed)
+- Prefer `find_symbol`, `find_referencing_symbols` over grep for code navigation
+- Use `replace_symbol_body`, `insert_after_symbol` for targeted edits
+- Read relevant memories before complex changes; write granular memories for discovered patterns

@@ -1,21 +1,17 @@
-{ config, lib, ... }:
+# Atuin shell history configuration
+# Config managed by chezmoi (dot_config/atuin/config.toml.tmpl)
+# We install the package but don't use programs.atuin to avoid HM generating config files
 {
-  programs.atuin = {
-    enable = true;
-    enableZshIntegration = true;
-    daemon.enable = true;
-    settings = {
-      auto_sync = true;
-      sync_frequency = "5m";
-      sync_address = "https://api.atuin.sh";
-      search_mode = "fuzzy";
-      style = "compact";
-      inline_height = 20;
-      show_preview = true;
-      username = "jrudnik";
-      email = "john.rudnik@gmail.com";
-      # sops-nix writes to /run/secrets/atuin/key on both darwin+nixos
-      key_path = "/run/secrets/atuin/key";
-    };
-  };
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+
+{
+  # Install atuin package only - no programs.atuin.enable
+  # This prevents home-manager from generating ~/.config/atuin/config.toml
+  home.packages = [ pkgs.atuin ];
+
+  # Shell integration and daemon are handled in zsh.nix initContent
 }

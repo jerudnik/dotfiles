@@ -1,0 +1,5 @@
+{{- /*
+  Claude Desktop configuration template
+  MCP servers are injected from chezmoidata.json via .claude_config
+*/ -}}
+{{ .claude_config | toPrettyJson }}

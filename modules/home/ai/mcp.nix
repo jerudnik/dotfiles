@@ -328,18 +328,9 @@ in
       text = "";
     };
 
-    # Generate Claude Desktop config if enabled
-    # Location: ~/Library/Application Support/Claude/claude_desktop_config.json
-    home.file."Library/Application Support/Claude/claude_desktop_config.json" =
-      lib.mkIf cfg.enableClaudeDesktop
-        {
-          text = builtins.toJSON cfg.claudeDesktopConfig;
-        };
-
-    # Generate Cursor global config if enabled
-    # Location: ~/.cursor/mcp.json
-    home.file.".cursor/mcp.json" = lib.mkIf cfg.enableCursor {
-      text = builtins.toJSON cfg.cursorConfig;
-    };
+    # Claude Desktop and Cursor configs are managed by chezmoi via chezmoi-bridge.nix
+    # Templates at:
+    #   chezmoi/private_Library/private_Application Support/Claude/claude_desktop_config.json.tmpl
+    #   chezmoi/dot_cursor/mcp.json.tmpl
   };
 }

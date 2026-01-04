@@ -22,8 +22,8 @@
   networking.computerName = "serious-callers-only";
 
   # Theme
-  themes.scheme = "modus";
-  themes.mode = "dark";
+  themes.scheme = "nord";
+  themes.mode = "light";
 
   # ============================================================
   # Linux Builder (for cross-compilation and remote building)
@@ -76,10 +76,4 @@
     # bind/priority defaults set in module
   };
 
-  # ============================================================
-  # Editor Services
-  # ============================================================
-
-  # Emacs - daemon mode for instant startup
-  services.emacs-daemon.enable = true;
 }

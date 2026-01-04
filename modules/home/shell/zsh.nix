@@ -28,8 +28,6 @@
 
     # Session variables
     sessionVariables = {
-      EDITOR = "hx";
-      VISUAL = "hx";
       PAGER = "less";
       LESS = "-R";
       # Secretive SSH agent socket (macOS Secure Enclave)
@@ -37,67 +35,30 @@
       SSH_AUTH_SOCK = "${config.home.homeDirectory}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
     };
 
-    # Shell aliases
-    shellAliases = {
-      # Navigation
-      ".." = "cd ..";
-      "..." = "cd ../..";
-      "...." = "cd ../../..";
-
-      # ls replacements (using eza)
-      ls = "eza";
-      l = "eza -la";
-      ll = "eza -la";
-      la = "eza -la";
-      lt = "eza --tree --level=2";
-      lta = "eza --tree --level=2 -a";
-
-      # Cat replacement (using bat)
-      cat = "bat";
-
-      # Grep replacement (using ripgrep)
-      grep = "rg";
-
-      # Find replacement (using fd)
-      find = "fd";
-
-      # Nix shortcuts
-      rebuild = "sudo darwin-rebuild switch --flake ~/Projects/dotfiles";
-      nix-clean = "nix-collect-garbage -d";
-      nix-update = "nix flake update ~/Projects/dotfiles";
-
-      # Git shortcuts (in addition to git aliases)
-      g = "git";
-      gs = "git status -sb";
-      ga = "git add";
-      gaa = "git add -A";
-      gc = "git commit";
-      gp = "git push";
-      gpl = "git pull";
-      gd = "git diff";
-      gco = "git checkout";
-      gb = "git branch";
-      glog = "git log --oneline -20";
-
-      # Directory shortcuts
-      dotfiles = "cd ~/Projects/dotfiles";
-      projects = "cd ~/Projects";
-
-      # Safety nets
-      rm = "rm -i";
-      mv = "mv -i";
-      cp = "cp -i";
-
-      # Misc
-      c = "clear";
-      h = "history";
-      path = "echo $PATH | tr ':' '\\n'";
-      week = "date +%V";
-      myip = "curl -s https://ifconfig.me";
-    };
+    # Shell aliases are now managed by chezmoi in ~/.config/zsh/aliases.zsh
+    shellAliases = { };
 
     # Additional initialization
     initContent = ''
+      # Source chezmoi-managed zsh configs
+      [[ -f ~/.config/zsh/aliases.zsh ]] && source ~/.config/zsh/aliases.zsh
+      [[ -f ~/.config/zsh/functions.zsh ]] && source ~/.config/zsh/functions.zsh
+      [[ -f ~/.config/zsh/local.zsh ]] && source ~/.config/zsh/local.zsh
+
+      # Initialize starship prompt
+      eval "$(starship init zsh)"
+
+      # Initialize atuin (shell history)
+      # Start daemon if not running, then init shell integration
+      if command -v atuin &> /dev/null; then
+        export ATUIN_LOG=error
+        if ! pgrep -x "atuin" > /dev/null 2>&1; then
+          atuin daemon &> /dev/null &
+          disown
+        fi
+        eval "$(atuin init zsh --disable-up-arrow)"
+      fi
+
       # Initialize zoxide (smarter cd)
       eval "$(zoxide init zsh)"
 
@@ -109,37 +70,6 @@
 
       # Better history search with fzf
       bindkey '^R' history-incremental-search-backward
-
-      # Useful functions
-      mkcd() {
-        mkdir -p "$1" && cd "$1"
-      }
-
-      # Extract any archive
-      extract() {
-        if [ -f "$1" ]; then
-          case "$1" in
-            *.tar.bz2)   tar xjf "$1"     ;;
-            *.tar.gz)    tar xzf "$1"     ;;
-            *.bz2)       bunzip2 "$1"     ;;
-            *.rar)       unrar x "$1"     ;;
-            *.gz)        gunzip "$1"      ;;
-            *.tar)       tar xf "$1"      ;;
-            *.tbz2)      tar xjf "$1"     ;;
-            *.tgz)       tar xzf "$1"     ;;
-            *.zip)       unzip "$1"       ;;
-            *.Z)         uncompress "$1"  ;;
-            *.7z)        7z x "$1"        ;;
-            *)           echo "'$1' cannot be extracted via extract()" ;;
-          esac
-        else
-          echo "'$1' is not a valid file"
-        fi
-      }
-
-      # Quick edit config files
-      erc() { $EDITOR ~/dotfiles/users/john/home.nix }
-      ezsh() { $EDITOR ~/dotfiles/modules/home/shell/zsh.nix }
 
       # Ghostty shell integration (after other plugins)
       if [[ -n $GHOSTTY_RESOURCES_DIR ]]; then

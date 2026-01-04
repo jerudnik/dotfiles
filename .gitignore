@@ -19,3 +19,4 @@ session-*.md
 
 # NixOS hardware configuration (machine-specific)
 hardware-configuration.nix
+chezmoi/.chezmoidata.json
