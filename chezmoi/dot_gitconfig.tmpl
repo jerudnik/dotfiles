@@ -4,11 +4,8 @@
 [user]
     name = John Rudnik
     email = john.rudnik@gmail.com
-{{- if .isDarwin }}
-    signingkey = ~/.ssh/secretive.pub
-{{- else }}
-    signingkey = ~/.ssh/id_ed25519.pub
-{{- end }}
+    # SSH signing key exported from Bitwarden SSH Agent
+    signingkey = ~/.ssh/bitwarden.pub
 
 [gpg]
     format = ssh

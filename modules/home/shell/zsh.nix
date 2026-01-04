@@ -30,9 +30,8 @@
     sessionVariables = {
       PAGER = "less";
       LESS = "-R";
-      # Secretive SSH agent socket (macOS Secure Enclave)
-      # Uses ~/Library which expands correctly per-user
-      SSH_AUTH_SOCK = "${config.home.homeDirectory}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
+      # Bitwarden SSH Agent socket (cross-platform)
+      SSH_AUTH_SOCK = "${config.home.homeDirectory}/.bitwarden-ssh-agent.sock";
     };
 
     # Shell aliases are now managed by chezmoi in ~/.config/zsh/aliases.zsh

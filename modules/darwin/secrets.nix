@@ -68,7 +68,13 @@
       # Used by sshd module for system-wide authorized_keys
 
       # Secretive key (Secure Enclave, Touch ID unlock) - interactive use
+      # serious-callers-only's Secretive key
       "ssh/authorized_key_secretive" = {
+        mode = "0444"; # World-readable (it's a public key)
+      };
+
+      # just-testing's Secretive key
+      "ssh/authorized_key_secretive_jt" = {
         mode = "0444"; # World-readable (it's a public key)
       };
 

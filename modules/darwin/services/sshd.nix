@@ -1,6 +1,6 @@
 # SSH server (Remote Login) service module
 # Enables macOS built-in sshd with hardened configuration
-# Supports multiple authorized key files (secretive, builder, yubikey)
+# Supports authorized keys as inline strings or file paths
 {
   config,
   pkgs,
@@ -10,10 +10,22 @@
 with lib;
 let
   cfg = config.services.sshd;
+  # Combine inline keys into a single string
+  inlineKeysContent = concatStringsSep "\n" cfg.authorizedKeys;
 in
 {
   options.services.sshd = {
     enable = mkEnableOption "SSH server (Remote Login)";
+
+    authorizedKeys = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = ''
+        List of SSH public keys (as strings) to authorize.
+        These are written directly to the authorized_keys file.
+      '';
+      example = [ "ssh-ed25519 AAAAC3... user@host" ];
+    };
 
     authorizedKeysFiles = mkOption {
       type = types.listOf types.path;
@@ -21,9 +33,7 @@ in
       description = ''
         List of paths to files containing authorized SSH public keys.
         All keys from all files will be combined into the authorized_keys.
-        Typically points to sops secret paths like:
-        - config.sops.secrets."ssh/authorized_key_secretive".path
-        - config.sops.secrets."ssh/authorized_key_builder".path
+        Typically points to sops secret paths.
       '';
     };
 
@@ -31,7 +41,7 @@ in
     authorizedKeysFile = mkOption {
       type = types.nullOr types.path;
       default = null;
-      description = "Deprecated: Use authorizedKeysFiles instead";
+      description = "Deprecated: Use authorizedKeysFiles or authorizedKeys instead";
     };
 
     passwordAuthentication = mkOption {
@@ -66,19 +76,21 @@ in
       PubkeyAuthentication yes
       PermitRootLogin ${cfg.permitRootLogin}
       AuthenticationMethods publickey
-      ${optionalString (cfg.authorizedKeysFiles != [ ]) ''
+      ${optionalString (cfg.authorizedKeys != [ ] || cfg.authorizedKeysFiles != [ ]) ''
         AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/authorized_keys.d/%u
       ''}
     '';
 
     # Pre-activation: Remove authorized_keys.d to prevent nix-darwin security check failure
-    system.activationScripts.preActivation.text = mkIf (cfg.authorizedKeysFiles != [ ]) ''
-      # Remove existing authorized_keys.d to prevent nix-darwin aborting
-      if [ -d /etc/ssh/authorized_keys.d ]; then
-        echo "Removing /etc/ssh/authorized_keys.d for re-activation..."
-        rm -rf /etc/ssh/authorized_keys.d
-      fi
-    '';
+    system.activationScripts.preActivation.text =
+      mkIf (cfg.authorizedKeys != [ ] || cfg.authorizedKeysFiles != [ ])
+        ''
+          # Remove existing authorized_keys.d to prevent nix-darwin aborting
+          if [ -d /etc/ssh/authorized_keys.d ]; then
+            echo "Removing /etc/ssh/authorized_keys.d for re-activation..."
+            rm -rf /etc/ssh/authorized_keys.d
+          fi
+        '';
 
     # System activation to enable Remote Login and set up authorized keys
     system.activationScripts.postActivation.text = ''
@@ -88,16 +100,22 @@ in
         systemsetup -setremotelogin on 2>/dev/null || true
       fi
 
-      ${optionalString (cfg.authorizedKeysFiles != [ ]) ''
-        # Set up system-wide authorized keys from sops secrets
+      ${optionalString (cfg.authorizedKeys != [ ] || cfg.authorizedKeysFiles != [ ]) ''
+        # Set up system-wide authorized keys
         echo "Setting up SSH authorized keys..."
         mkdir -p /etc/ssh/authorized_keys.d
         for user in $(dscl . -list /Users | grep -v '^_'); do
           if [ -d "/Users/$user" ]; then
-            # Combine all authorized key files
-            cat ${
-              concatStringsSep " " (map (f: toString f) cfg.authorizedKeysFiles)
-            } > "/etc/ssh/authorized_keys.d/$user" 2>/dev/null || true
+            # Start with inline keys
+            ${optionalString (cfg.authorizedKeys != [ ]) ''
+              echo ${escapeShellArg inlineKeysContent} > "/etc/ssh/authorized_keys.d/$user"
+            ''}
+            # Append keys from files
+            ${optionalString (cfg.authorizedKeysFiles != [ ]) ''
+              cat ${concatStringsSep " " (map (f: toString f) cfg.authorizedKeysFiles)} ${
+                if cfg.authorizedKeys != [ ] then ">>" else ">"
+              } "/etc/ssh/authorized_keys.d/$user" 2>/dev/null || true
+            ''}
             chmod 644 "/etc/ssh/authorized_keys.d/$user" 2>/dev/null || true
           fi
         done

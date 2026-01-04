@@ -701,8 +701,12 @@ let
   };
 in
 {
-  # Install OpenCode
-  home.packages = with pkgs; [ opencode ];
+  # OpenCode is installed via `nix profile install github:sst/opencode`
+  # The flake overlay causes source builds which fail due to bun sandbox issues.
+  # Until upstream fixes their binary cache or bun lockfile, use profile install.
+  #
+  # To update: nix profile upgrade opencode
+  # To install: nix profile install github:sst/opencode
 
   # Configuration is managed by chezmoi via chezmoi-bridge.nix
   # Template at: chezmoi/dot_config/opencode/opencode.json.tmpl

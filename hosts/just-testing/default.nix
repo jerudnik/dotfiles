@@ -25,6 +25,11 @@
   themes.scheme = "modus";
   themes.mode = "dark";
 
+  # Temporarily disable Stylix to avoid ECL/SBCL build failure on Xcode 16
+  # mac-app-util is disabled at flake level (enableMacAppUtil = false)
+  # Both depend on SBCL which fails to build with newer Apple SDKs
+  stylix.enable = false;
+
   # User configuration
   users.users.jrudnik = {
     name = "jrudnik";
@@ -37,12 +42,14 @@
   # ============================================================
 
   # SSH server for remote access
+  # Authorized keys are public keys - no need to encrypt them
   services.sshd = {
     enable = true;
-    authorizedKeysFiles = [
-      config.sops.secrets."ssh/authorized_key_secretive".path
-      config.sops.secrets."ssh/authorized_key_builder".path
-      config.sops.secrets."ssh/authorized_key_yubikey".path
+    authorizedKeys = [
+      # Bitwarden SSH keys (just-testing and serious-callers-only)
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUET4JHxbky06pOvg0gCE39iTt8X5aeulQPliJoq8Y6 just-testing"
+      # Legacy keys for historical access (can be removed once all machines migrated)
+      # "ssh-ed25519 AAAAC3... serious-callers-only"
     ];
   };
 
@@ -82,4 +89,11 @@
   # nix.extraOptions = ''
   #   builders-use-substitutes = true
   # '';
+
+  # ============================================================
+  # Secrets - DISABLED (using Bitwarden instead of sops-nix)
+  # ============================================================
+  # This host uses Bitwarden CLI + chezmoi for secrets management
+  # instead of sops-nix + Yubikey. Disable all sops secrets.
+  sops.secrets = lib.mkForce { };
 }

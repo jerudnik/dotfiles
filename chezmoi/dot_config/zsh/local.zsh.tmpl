@@ -1,13 +1,4 @@
 # Local Zsh Configuration
 # Managed by chezmoi - Host-specific settings for {{ .hostname }}
 
-# Host-specific environment variables
-{{- if eq .hostname "serious-callers-only" }}
-# Production workstation settings
-export OPENAI_API_KEY="{{ .secrets.openai_api_key }}"
-{{- else if eq .hostname "just-testing" }}
-# Testing machine settings
-export OPENAI_API_KEY="{{ .secrets.openai_api_key }}"
-{{- end }}
-
 # Add any host-specific aliases or functions below

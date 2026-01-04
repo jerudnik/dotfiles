@@ -21,7 +21,6 @@
 
     # Disable nixpkgs release check (using stable nixpkgs with unstable home-manager)
     enableNixpkgsReleaseCheck = false;
-
     # This value determines the Home Manager release that your configuration is
     # compatible with. This helps avoid breakage when a new Home Manager release
     # introduces backwards incompatible changes.
@@ -34,9 +33,6 @@
   # ============================================================
   # Editor Configuration
   # ============================================================
-
-  # Emacs - knowledge management and programmable notes
-  programs.myEmacs.enable = true;
 
   # mac-app-util is enabled via flake.nix sharedModules + hosts/common/darwin
 }

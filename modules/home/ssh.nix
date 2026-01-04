@@ -1,6 +1,6 @@
 # SSH client configuration
 # Configures SSH hosts for cross-machine access
-# Uses secretive (Secure Enclave) for interactive SSH, builder key for automation
+# Uses Bitwarden SSH Agent for interactive SSH, builder key for automation
 {
   config,
   pkgs,
@@ -14,11 +14,16 @@
 
   # Allowed signers file for SSH commit signature verification
   # Format: <email> <key-type> <public-key>
-  # NOTE: Update with your secretive public key after generating it
-  # Keep old Yubikey key during transition for historical commit verification
+  # Bitwarden SSH key for current signing, plus old keys for historical verification
   home.file.".ssh/allowed_signers".text = ''
+    john.rudnik@gmail.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUET4JHxbky06pOvg0gCE39iTt8X5aeulQPliJoq8Y6 just-testing
     john.rudnik@gmail.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDxpgRd18pcrQEikg/tY2D9RN2ASY8SS2WBqIPkTWNEsBrN+GAPnNnxPpOweKZFZCByLEBMKH2RJRTfGtuwfVig=
     john.rudnik@gmail.com sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHznefm6tDTtpZFjCRDhDBR+CJD9mTE5OwhTE9LMSiy3AAAABHNzaDo=
+  '';
+
+  # Export Bitwarden public key to file for git signing
+  home.file.".ssh/bitwarden.pub".text = ''
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUET4JHxbky06pOvg0gCE39iTt8X5aeulQPliJoq8Y6 just-testing
   '';
 
   # GitHub known host keys (prevents TOFU attacks)
@@ -36,58 +41,27 @@
     # Detect platform
     if [[ "$(uname)" == "Darwin" ]]; then
       # =======================================================================
-      # macOS: Check for Secretive setup
+      # macOS: Check for Bitwarden SSH Agent setup
       # =======================================================================
-      SECRETIVE_SOCKET="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
-      SECRETIVE_KEYS_DIR="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys"
-      SECRETIVE_SYMLINK="$SSH_DIR/secretive.pub"
+      BITWARDEN_SOCKET="$HOME/.bitwarden-ssh-agent.sock"
       
-      if [[ -S "$SECRETIVE_SOCKET" ]]; then
-        # Secretive is running - check if symlink exists and is valid
-        if [[ ! -L "$SECRETIVE_SYMLINK" ]] || [[ ! -f "$SECRETIVE_SYMLINK" ]]; then
-          echo ""
-          echo "╔══════════════════════════════════════════════════════════════════╗"
-          echo "║  SSH KEY SETUP REQUIRED                                          ║"
-          echo "╠══════════════════════════════════════════════════════════════════╣"
-          echo "║  Secretive is running but ~/.ssh/secretive.pub is not set up.    ║"
-          echo "║                                                                  ║"
-          echo "║  Available keys in Secretive:                                    ║"
-          if [[ -d "$SECRETIVE_KEYS_DIR" ]]; then
-            for keyfile in "$SECRETIVE_KEYS_DIR"/*.pub; do
-              if [[ -f "$keyfile" ]]; then
-                keyname=$(cat "$keyfile" | awk '{print $NF}')
-                keyhash=$(basename "$keyfile" .pub)
-                echo "║    - $keyname"
-                echo "║      Hash: $keyhash"
-              fi
-            done
-          fi
-          echo "║                                                                  ║"
-          echo "║  To set up, run:                                                 ║"
-          echo "║    ln -sf ~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys/<HASH>.pub ~/.ssh/secretive.pub"
-          echo "║                                                                  ║"
-          echo "║  Then add the public key to:                                     ║"
-          echo "║    1. GitHub (https://github.com/settings/ssh/new)               ║"
-          echo "║    2. secrets/secrets.yaml (ssh/authorized_key_secretive)        ║"
-          echo "╚══════════════════════════════════════════════════════════════════╝"
-          echo ""
-        fi
-      else
+      if [[ ! -S "$BITWARDEN_SOCKET" ]]; then
         echo ""
         echo "╔══════════════════════════════════════════════════════════════════╗"
-        echo "║  SECRETIVE NOT RUNNING                                           ║"
+        echo "║  BITWARDEN SSH AGENT NOT RUNNING                                 ║"
         echo "╠══════════════════════════════════════════════════════════════════╣"
-        echo "║  Secretive agent socket not found.                               ║"
+        echo "║  Bitwarden SSH agent socket not found.                           ║"
         echo "║                                                                  ║"
         echo "║  Please:                                                         ║"
-        echo "║    1. Open Secretive.app from /Applications                      ║"
-        echo "║    2. Create a new key (Secure Enclave recommended)              ║"
-        echo "║    3. Run 'darwin-rebuild switch --flake .' again                ║"
+        echo "║    1. Open Bitwarden Desktop                                     ║"
+        echo "║    2. Settings > SSH Agent > Enable SSH Agent                    ║"
+        echo "║    3. Add an SSH key in Bitwarden                                ║"
+        echo "║    4. Unlock Bitwarden to activate the agent                     ║"
         echo "╚══════════════════════════════════════════════════════════════════╝"
         echo ""
       fi
       
-      # Check for builder key
+      # Check for builder key (still needed for automation)
       if [[ ! -f "$SSH_DIR/id_ed25519_builder" ]]; then
         echo ""
         echo "╔══════════════════════════════════════════════════════════════════╗"
@@ -96,10 +70,9 @@
         echo "║  The automated builder key is missing.                           ║"
         echo "║                                                                  ║"
         echo "║  To generate (passphraseless for automation):                    ║"
-        echo "║    ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_builder -N \"\" -C \"builder@$(hostname)\"" 
+        echo "║    ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_builder -N \"\" -C \"builder@\$HOSTNAME\"" 
         echo "║                                                                  ║"
-        echo "║  Then add the public key to secrets/secrets.yaml:                ║"
-        echo "║    ssh/authorized_key_builder                                    ║"
+        echo "║  Then add the public key to remote hosts' authorized_keys.       ║"
         echo "╚══════════════════════════════════════════════════════════════════╝"
         echo ""
       fi
@@ -124,7 +97,7 @@
         echo "║                                                                  ║"
         echo "║  Then add the public key to:                                     ║"
         echo "║    1. GitHub (https://github.com/settings/ssh/new)               ║"
-        echo "║    2. secrets/secrets.yaml                                       ║"
+        echo "║    2. Remote hosts' authorized_keys                              ║"
         echo "╚══════════════════════════════════════════════════════════════════╝"
         echo ""
       fi
@@ -156,12 +129,12 @@
     # SSH host configurations
     matchBlocks = {
       # ============================================================
-      # Wildcard defaults - use secretive agent for all connections
+      # Wildcard defaults - use Bitwarden SSH agent for all connections
       # ============================================================
       "*" = {
         extraOptions = {
-          # Point to secretive's SSH agent socket (Secure Enclave keys)
-          IdentityAgent = "~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
+          # Point to Bitwarden's SSH agent socket
+          IdentityAgent = "~/.bitwarden-ssh-agent.sock";
           AddKeysToAgent = "yes";
         };
       };
@@ -183,7 +156,7 @@
       "serious-callers-only" = {
         hostname = "serious-callers-only";
         user = "john";
-        # Uses secretive agent from wildcard
+        # Uses Bitwarden agent from wildcard
       };
 
       # Fallback: Local network (mDNS/Bonjour)
@@ -199,7 +172,7 @@
         identityFile = [ "~/.ssh/id_ed25519_builder" ];
         identitiesOnly = true;
         extraOptions = {
-          # Bypass secretive agent for automated/non-interactive use
+          # Bypass Bitwarden agent for automated/non-interactive use
           IdentityAgent = "none";
         };
       };
@@ -261,8 +234,8 @@
 
     # Global SSH settings
     extraConfig = ''
-      # secretive handles key management via Secure Enclave
-      # Touch ID is required for each new SSH session
+      # Bitwarden Desktop handles key management via SSH Agent
+      # Unlock Bitwarden to make keys available
       # Builder aliases use passphraseless keys for automation
     '';
   };

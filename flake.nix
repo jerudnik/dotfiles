@@ -47,12 +47,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # OpenCode - pinned to v1.0.204 for native skills support
-    opencode = {
-      url = "github:sst/opencode";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # NixOS hardware quirks and optimizations
     nixos-hardware.url = "github:NixOS/nixos-hardware";
   };
@@ -67,12 +61,13 @@
       sops-nix,
       stylix,
       treefmt-nix,
-      opencode,
       nixos-hardware,
       mac-app-util,
       ...
     }@inputs:
     let
+      lib = nixpkgs.lib;
+
       # Supported systems
       systems = {
         darwin = [
@@ -97,18 +92,9 @@
       # Custom overlay for local packages
       customOverlay = import ./overlays;
 
-      # OpenCode overlay - use pinned version from flake input
-      opencodeOverlay = system: final: prev: {
-        # Disable checks/tests to prevent build hangs on macOS
-        opencode = opencode.packages.${system}.default.overrideAttrs (old: {
-          doCheck = false;
-        });
-      };
-
       # Overlay list per system
       mkOverlays = system: [
         customOverlay
-        (opencodeOverlay system)
       ];
 
       # Shared pkgs constructor
@@ -143,6 +129,7 @@
           hostname,
           hostPath,
           username,
+          enableMacAppUtil ? true, # Set false to skip SBCL-dependent mac-app-util
         }:
         nix-darwin.lib.darwinSystem {
           system = "aarch64-darwin";
@@ -160,8 +147,8 @@
             # Stylix theming
             stylix.darwinModules.stylix
 
-            # mac-app-util for Spotlight/Raycast integration
-            mac-app-util.darwinModules.default
+            # mac-app-util for Spotlight/Raycast integration (optional, uses SBCL)
+            (lib.optionalAttrs enableMacAppUtil mac-app-util.darwinModules.default)
 
             # Host-specific configuration
             hostPath
@@ -176,8 +163,8 @@
                 users.${username} = ./users/${username}/home.nix;
                 backupFileExtension = "backup";
 
-                # mac-app-util for Spotlight/Raycast integration
-                sharedModules = [
+                # mac-app-util for Spotlight/Raycast integration (optional, uses SBCL)
+                sharedModules = lib.optionals enableMacAppUtil [
                   mac-app-util.homeManagerModules.default
                 ];
               };
@@ -238,11 +225,12 @@
           username = "john";
         };
 
-        # MacBook Air - Work laptop
+        # MacBook Air - Work laptop (mac-app-util disabled due to SBCL/Xcode 16 issue)
         "just-testing" = mkDarwinSystem {
           hostname = "just-testing";
           hostPath = ./hosts/just-testing;
           username = "jrudnik";
+          enableMacAppUtil = false;
         };
       };
 

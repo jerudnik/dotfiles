@@ -55,7 +55,7 @@ let
 
     # Exa - AI-powered web search and code context
     # Provides web_search_exa and get_code_context_exa tools
-    # Requires: EXA_API_KEY in environment
+    # API key injected via chezmoi template from secrets.exaKey
     exa = {
       type = "remote";
       url = "https://mcp.exa.ai/mcp";
@@ -169,6 +169,7 @@ let
     # Uses claude-code context (excludes file/shell tools that OpenCode handles)
     # Provides: find_symbol, find_referencing_symbols, rename_symbol,
     #           get_symbols_overview, insert_after_symbol, replace_symbol_body, etc.
+    # Available modes: editing, interactive, no-memories, no-onboarding, onboarding, one-shot, planning
     serena = {
       type = "local";
       # Not a Nix package - runs via uvx (uv's package runner)
@@ -182,7 +183,7 @@ let
         "claude-code"
         "--project-from-cwd"
         "--mode"
-        "nix-focused"
+        "editing"
       ];
       description = "Semantic code retrieval and editing via LSP";
     };

@@ -5,8 +5,16 @@
   ...
 }:
 let
-  colors = config.lib.stylix.colors;
-  # Build color object manually since withHashtag returns a derivation path
+  # Import modus theme for fallback when Stylix is disabled
+  modusTheme = import ../../themes/modus.nix { inherit lib; };
+
+  # Check if Stylix is enabled (handle both osConfig and direct config)
+  stylixEnabled = config.stylix.enable or (config.osConfig.stylix.enable or false);
+
+  # When Stylix enabled, use its colors; otherwise fallback to modus-vivendi
+  colors = if stylixEnabled then config.lib.stylix.colors else modusTheme.vivendi;
+
+  # Build color object with # prefix
   colorSet = builtins.listToAttrs (
     map
       (name: {
@@ -32,14 +40,24 @@ let
         "base0F"
       ]
   );
+
+  # Fallback font settings when Stylix is disabled
+  fontSettings =
+    if stylixEnabled then
+      {
+        monospace = config.stylix.fonts.monospace.name;
+        size = config.stylix.fonts.sizes.terminal;
+      }
+    else
+      {
+        monospace = "iA Writer Mono";
+        size = 14;
+      };
 in
 {
   xdg.configFile."chezmoi/chezmoidata.json".text = builtins.toJSON {
     stylix = colorSet;
-    font = {
-      monospace = config.stylix.fonts.monospace.name;
-      size = config.stylix.fonts.sizes.terminal;
-    };
+    font = fontSettings;
     hostname = config.osConfig.networking.hostName or "unknown";
     username = config.home.username;
     isLinux = pkgs.stdenv.isLinux;

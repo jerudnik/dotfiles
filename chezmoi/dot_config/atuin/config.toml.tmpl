@@ -27,5 +27,5 @@ email = "john.rudnik@gmail.com"
 # Stats
 common_prefix = ["sudo", "nix"]
 
-# Key path (from sops-nix)
-key_path = "{{ .secrets.atuinKey }}"
+# Sync key file (populated from Bitwarden by chezmoi)
+key_path = "~/.config/atuin/key"
