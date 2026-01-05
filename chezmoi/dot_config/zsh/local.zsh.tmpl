@@ -1,5 +1,6 @@
+{{- $data := include (joinPath .chezmoi.homeDir ".config/chezmoi/chezmoidata.json") | fromJson -}}
 # Local Zsh Configuration
-# Managed by chezmoi - Host-specific settings for {{ .hostname }}
+# Managed by chezmoi - Host-specific settings for {{ $data.hostname }}
 
 {{- $apiKeys := bitwardenFields "item" "API Keys" }}
 

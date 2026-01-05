@@ -2,6 +2,7 @@
   OpenCode configuration template
   MCP servers are injected from chezmoidata.json via .opencode_mcp_config
 */ -}}
+{{- $data := include (joinPath .chezmoi.homeDir ".config/chezmoi/chezmoidata.json") | fromJson -}}
 {
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": false,
@@ -316,7 +317,7 @@
     }
   },
 
-  "mcp": {{- $mcp := .opencode_mcp_config -}}
+  "mcp": {{- $mcp := $data.opencode_mcp_config -}}
   {{- /* Inject Exa API key into headers from Bitwarden */ -}}
   {{- if hasKey $mcp "exa" -}}
     {{- $apiKeys := bitwardenFields "item" "API Keys" -}}

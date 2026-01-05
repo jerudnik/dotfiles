@@ -1,3 +1,4 @@
+{{- $data := include (joinPath .chezmoi.homeDir ".config/chezmoi/chezmoidata.json") | fromJson -}}
 # Starship Prompt Configuration
 # Managed by chezmoi - Stylix colors
 
@@ -16,31 +17,31 @@ $line_break\
 $character"""
 
 [username]
-style_user = "bold {{ .stylix.base0D }}"
-style_root = "bold {{ .stylix.base08 }}"
+style_user = "bold {{ $data.stylix.base0D }}"
+style_root = "bold {{ $data.stylix.base08 }}"
 format = "[$user]($style) "
 show_always = false
 
 [hostname]
-style = "bold {{ .stylix.base0E }}"
+style = "bold {{ $data.stylix.base0E }}"
 format = "[@$hostname]($style) "
 ssh_only = true
 
 [directory]
-style = "bold {{ .stylix.base0C }}"
+style = "bold {{ $data.stylix.base0C }}"
 format = "[$path]($style)[$read_only]($read_only_style) "
 truncation_length = 3
 truncate_to_repo = true
 read_only = " 󰌾"
-read_only_style = "{{ .stylix.base08 }}"
+read_only_style = "{{ $data.stylix.base08 }}"
 
 [git_branch]
-style = "bold {{ .stylix.base0B }}"
+style = "bold {{ $data.stylix.base0B }}"
 format = "[$symbol$branch]($style) "
 symbol = " "
 
 [git_status]
-style = "bold {{ .stylix.base08 }}"
+style = "bold {{ $data.stylix.base08 }}"
 format = '([$all_status$ahead_behind]($style) )'
 conflicted = "="
 ahead = "⇡${count}"
@@ -54,37 +55,37 @@ renamed = "»${count}"
 deleted = "✘${count}"
 
 [git_state]
-style = "bold {{ .stylix.base0A }}"
+style = "bold {{ $data.stylix.base0A }}"
 format = '\([$state( $progress_current/$progress_total)]($style)\) '
 
 [git_metrics]
 disabled = false
-added_style = "bold {{ .stylix.base0B }}"
-deleted_style = "bold {{ .stylix.base08 }}"
+added_style = "bold {{ $data.stylix.base0B }}"
+deleted_style = "bold {{ $data.stylix.base08 }}"
 format = '([+$added]($added_style) )([-$deleted]($deleted_style) )'
 
 [cmd_duration]
-style = "bold {{ .stylix.base0A }}"
+style = "bold {{ $data.stylix.base0A }}"
 format = "[$duration]($style) "
 min_time = 2000
 show_milliseconds = false
 
 [python]
-style = "bold {{ .stylix.base0A }}"
+style = "bold {{ $data.stylix.base0A }}"
 format = '[(\($virtualenv\))]($style) '
 detect_folders = [".venv", "venv"]
 
 [nix_shell]
-style = "bold {{ .stylix.base0D }}"
+style = "bold {{ $data.stylix.base0D }}"
 format = '[❄️ $state(\($name\))]($style) '
 impure_msg = ""
 pure_msg = "pure"
 heuristic = true
 
 [character]
-success_symbol = "[❯](bold {{ .stylix.base0E }})"
-error_symbol = "[❯](bold {{ .stylix.base08 }})"
-vimcmd_symbol = "[❮](bold {{ .stylix.base0B }})"
+success_symbol = "[❯](bold {{ $data.stylix.base0E }})"
+error_symbol = "[❯](bold {{ $data.stylix.base08 }})"
+vimcmd_symbol = "[❮](bold {{ $data.stylix.base0B }})"
 
 [aws]
 disabled = true

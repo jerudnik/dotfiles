@@ -2,4 +2,5 @@
   Claude Desktop configuration template
   MCP servers are injected from chezmoidata.json via .claude_config
 */ -}}
-{{ .claude_config | toPrettyJson }}
+{{- $data := include (joinPath .chezmoi.homeDir ".config/chezmoi/chezmoidata.json") | fromJson -}}
+{{ $data.claude_config | toPrettyJson }}

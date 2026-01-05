@@ -1,39 +1,40 @@
+{{- $data := include (joinPath .chezmoi.homeDir ".config/chezmoi/chezmoidata.json") | fromJson -}}
 # Ghostty Terminal Configuration
 # Managed by chezmoi - theme colors from Stylix
 
 # =========================================
 # FONTS
 # =========================================
-font-family = {{ .font.monospace }}
-font-size = {{ .font.size }}
+font-family = {{ $data.font.monospace }}
+font-size = {{ $data.font.size }}
 
 # =========================================
 # COLORS (from Stylix)
 # =========================================
-background = {{ .stylix.base00 }}
-foreground = {{ .stylix.base05 }}
-cursor-color = {{ .stylix.base05 }}
-cursor-text = {{ .stylix.base00 }}
-selection-background = {{ .stylix.base02 }}
-selection-foreground = {{ .stylix.base05 }}
+background = {{ $data.stylix.base00 }}
+foreground = {{ $data.stylix.base05 }}
+cursor-color = {{ $data.stylix.base05 }}
+cursor-text = {{ $data.stylix.base00 }}
+selection-background = {{ $data.stylix.base02 }}
+selection-foreground = {{ $data.stylix.base05 }}
 
 # 16-color palette
-palette = 0={{ .stylix.base00 }}
-palette = 1={{ .stylix.base08 }}
-palette = 2={{ .stylix.base0B }}
-palette = 3={{ .stylix.base0A }}
-palette = 4={{ .stylix.base0D }}
-palette = 5={{ .stylix.base0E }}
-palette = 6={{ .stylix.base0C }}
-palette = 7={{ .stylix.base05 }}
-palette = 8={{ .stylix.base03 }}
-palette = 9={{ .stylix.base08 }}
-palette = 10={{ .stylix.base0B }}
-palette = 11={{ .stylix.base0A }}
-palette = 12={{ .stylix.base0D }}
-palette = 13={{ .stylix.base0E }}
-palette = 14={{ .stylix.base0C }}
-palette = 15={{ .stylix.base07 }}
+palette = 0={{ $data.stylix.base00 }}
+palette = 1={{ $data.stylix.base08 }}
+palette = 2={{ $data.stylix.base0B }}
+palette = 3={{ $data.stylix.base0A }}
+palette = 4={{ $data.stylix.base0D }}
+palette = 5={{ $data.stylix.base0E }}
+palette = 6={{ $data.stylix.base0C }}
+palette = 7={{ $data.stylix.base05 }}
+palette = 8={{ $data.stylix.base03 }}
+palette = 9={{ $data.stylix.base08 }}
+palette = 10={{ $data.stylix.base0B }}
+palette = 11={{ $data.stylix.base0A }}
+palette = 12={{ $data.stylix.base0D }}
+palette = 13={{ $data.stylix.base0E }}
+palette = 14={{ $data.stylix.base0C }}
+palette = 15={{ $data.stylix.base07 }}
 
 # =========================================
 # WINDOW
@@ -72,7 +73,7 @@ keybind = super+ctrl+right=goto_split:right
 keybind = super+ctrl+up=goto_split:top
 keybind = super+ctrl+down=goto_split:bottom
 
-{{ if .isDarwin -}}
+{{ if $data.isDarwin -}}
 # =========================================
 # macOS SPECIFIC
 # =========================================
@@ -81,7 +82,7 @@ shell-integration-features = cursor,sudo,title
 macos-option-as-alt = true
 {{- end }}
 
-{{ if .isLinux -}}
+{{ if $data.isLinux -}}
 # =========================================
 # LINUX SPECIFIC
 # =========================================
