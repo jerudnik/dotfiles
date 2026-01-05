@@ -33,6 +33,7 @@
     # ============================================================
     # Development Tools
     # ============================================================
+    opencode # AI coding assistant
     bun # Fast JavaScript runtime (for OpenCode custom tools)
     nodejs_20 # Provides node + npx for MCP npm servers (align with development.nix)
     direnv # Per-directory environment variables
