@@ -1,90 +1,73 @@
-# AI Tools Setup (Yubikey + sops-nix)
+# AI Tools Setup (Bitwarden + chezmoi)
 
-Parsimony first: this is the minimal, accurate setup for OpenCode with Yubikey-backed secrets across macOS (nix-darwin) and NixOS.
+Parsimony first: this is the minimal, accurate setup for OpenCode with Bitwarden-managed secrets across macOS (nix-darwin) and NixOS.
 
 ## Quick Start (checklist)
 
-1. `nix develop`
-2. `age-plugin-yubikey` → save identity to `~/.config/sops/age/yubikey-identity.txt`
-3. Add public key to `.sops.yaml` (keys + creation_rules)
-4. `SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets.yaml` → add `api_keys/*`
-5. Declare secrets per host (owner matches user)
-6. Run `scripts/setup.sh` for preflight checks (SSH key, sops age key, Yubikey, sops)
-7. Apply: `apply` (macOS) or `sudo nixos-rebuild switch --flake .`
+1. Install Bitwarden Desktop (via homebrew cask) and log in
+2. Enable SSH Agent in Bitwarden settings
+3. Create "API Keys" secure note with custom fields: `opencode_zen`, `github_token`, `context7`, `exa`
+4. Create "Local Keys" secure note with custom field: `atuin_key`
+5. `nix develop` → `apply` (or `sudo nixos-rebuild switch --flake .`)
+6. Unlock Bitwarden CLI: `bw unlock --session` (or unlock in Desktop app)
+7. Apply chezmoi: `chezmoi apply` (pulls secrets from Bitwarden)
 8. New terminal → verify `OPENCODE_API_KEY` and `opencode --version`
 
 ## Prerequisites
 
-- Yubikey with PIV support
+- Bitwarden Desktop installed and logged in
+- Bitwarden CLI (`bw`) installed (via nixpkgs or homebrew)
 - Nix flakes enabled; this repo cloned
-- Dev shell: `nix develop` (provides age-plugin-yubikey, yubikey-manager, sops, age)
+- Dev shell: `nix develop` (provides chezmoi, bitwarden-cli)
 
-## One-Time Yubikey + sops Setup
+## One-Time Bitwarden Setup
 
-1. Enter dev shell
+1. Install Bitwarden Desktop (if not already installed)
 
-```bash
-cd ~/Projects/dotfiles
-nix develop
-```
+Bitwarden is installed via homebrew cask (see `modules/darwin/homebrew.nix`).
 
-2. Initialize Yubikey and save identity
+2. Enable SSH Agent in Bitwarden
 
-```bash
-age-plugin-yubikey           # run wizard
-mkdir -p ~/.config/sops/age
-age-plugin-yubikey --identity > ~/.config/sops/age/yubikey-identity.txt
-chmod 600 ~/.config/sops/age/yubikey-identity.txt
-```
+- Open Bitwarden Desktop
+- Go to Settings → SSH Agent
+- Enable "Enable SSH Agent"
+- Set socket path to `~/.bitwarden-ssh-agent.sock`
 
-3. Add public key to `.sops.yaml`
+3. Create API Keys secure note
 
-- Add the `age1yubikey...` key under `keys:` and in the `creation_rules` for `secrets.yaml`.
+In Bitwarden Desktop, create a new secure note called "API Keys":
 
-4. Edit encrypted secrets (touch required)
+- Add custom fields:
+  - `opencode_zen` - Your OpenCode API key
+  - `github_token` - GitHub personal access token
+  - `context7` - Context7 API key
+  - `exa` - Exa AI search API key
 
-```bash
-cd secrets
-SOPS_AGE_KEY_FILE=~/.config/sops/age/yubikey-identity.txt sops secrets.yaml
-```
+4. Create Local Keys secure note
 
-Add your keys, e.g.:
+Create another secure note called "Local Keys":
 
-```yaml
-api_keys:
-  opencode_zen: "op-api-key"
-  github_token: "ghp-..."
-```
+- Add custom field: `atuin_key` - Your Atuin sync key
 
-## Declare Secrets (per host/user)
+## Chezmoi Template Integration
 
-Set owner per host to match the local username.
+Chezmoi templates pull secrets from Bitwarden during `chezmoi apply`:
 
-```nix
-# hosts/serious-callers-only/default.nix (john)
-sops.secrets = {
-  "api_keys/opencode_zen" = { owner = "john"; mode = "0400"; };
-  "api_keys/github_token" = { owner = "john"; mode = "0400"; };
-};
-
-# hosts/just-testing/default.nix (jrudnik)
-sops.secrets = {
-  "api_keys/opencode_zen" = { owner = "jrudnik"; mode = "0400"; };
-};
-```
-
-NixOS: declare in `modules/nixos/secrets.nix` (uses host-derived age key at `/var/lib/sops-nix/key.txt`).
+- Templates reference: `chezmoi/dot_config/opencode/`, `chezmoi/private_Library/...`
+- Template syntax: `{{ (bitwardenFields "item" "API Keys").opencode_zen.value }}`
+- Requires Bitwarden CLI unlocked before running chezmoi
 
 ## Load Into Environment
 
-`modules/home/ai/environment.nix` loads secrets into shell on login:
+`modules/home/ai/environment.nix` loads secrets from chezmoi-managed config files:
 
 ```nix
+# Chezmoi writes to ~/.config/opencode/.env
 programs.zsh.initExtra = ''
-  if [[ -r /run/secrets/api_keys/opencode_zen ]]; then
-    export OPENCODE_API_KEY="$(cat /run/secrets/api_keys/opencode_zen)"
+  if [[ -f ~/.config/opencode/.env ]]; then
+    source ~/.config/opencode/.env
   fi
-'';
+ '';
 ```
 
 Aliases: `oc` (opencode), `ai` (opencode run).
@@ -99,24 +82,37 @@ apply  # or: sudo darwin-rebuild switch --flake .
 sudo nixos-rebuild switch --flake .
 ```
 
+## Apply Chezmoi (Secrets Deployment)
+
+After Nix config is applied, deploy secrets from Bitwarden:
+
+```bash
+# Unlock Bitwarden CLI (or unlock in Desktop app)
+bw unlock --session
+
+# Apply chezmoi templates (pulls secrets from Bitwarden)
+chezmoi apply
+```
+
 Open a new terminal so env vars load.
 
 ## Verify
 
 ```bash
 echo $OPENCODE_API_KEY
-cat /run/secrets/api_keys/opencode_zen
 which opencode
 opencode --version
+
+# Check chezmoi managed files
+cat ~/.config/opencode/.env
 ```
 
 ## Environment Variables (need-to-know)
 
-- `OPENCODE_API_KEY` (secret) – from `/run/secrets/api_keys/opencode_zen`
-- `GITHUB_PERSONAL_ACCESS_TOKEN` (secret) – from `/run/secrets/api_keys/github_token`
-- `CONTEXT7_API_KEY` (secret) – from `/run/secrets/api_keys/context7`
-- `EXA_API_KEY` (secret) – from `/run/secrets/api_keys/exa`
-- `SOPS_AGE_KEY_FILE` – `~/.config/sops/age/yubikey-identity.txt`
+- `OPENCODE_API_KEY` (secret) – sourced from `~/.config/opencode/.env` (chezmoi managed)
+- `GITHUB_PERSONAL_ACCESS_TOKEN` (secret) – sourced from `~/.config/opencode/.env`
+- `CONTEXT7_API_KEY` (secret) – sourced from `~/.config/opencode/.env`
+- `EXA_API_KEY` (secret) – sourced from `~/.config/opencode/.env`
 - `OLLAMA_HOST` – e.g. `http://100.x.y.z:11434` for remote Ollama (see `docs/ai-server.md`)
 
 ## MCP Servers (where to configure)
@@ -145,7 +141,7 @@ This keeps infrastructure logic in Nix while allowing rapid iteration on client-
 
 ```bash
 # 1. Define server in modules/home/ai/mcp.nix
-# 2. Add any required secrets to secrets/secrets.yaml
+# 2. Add any required secrets to Bitwarden "API Keys" note
 # 3. Apply Nix config (regenerates chezmoidata.json)
 apply
 
@@ -157,12 +153,14 @@ See `docs/chezmoi.md` for full template variable reference.
 
 ## Troubleshooting
 
-- **"no identity matched"**: Yubikey plugged, identity file present, `.sops.yaml` contains your key.
-- **Secrets missing in /run/secrets**: verify declarations in `modules/darwin/secrets.nix` or `modules/nixos/secrets.nix`; re-apply.
-- **Env var empty**: open a new terminal; confirm file ownership matches user.
-- **Yubikey touch prompt absent**: ensure `IdentityAgent = "none"` per-host in `modules/home/ssh.nix`; use Nix openssh (`which ssh` → `/etc/profiles/per-user/.../ssh`).
+- **"Bitwarden not unlocked"**: Run `bw unlock --session` or unlock Bitwarden Desktop before `chezmoi apply`.
+- **Env var empty**: Run `chezmoi apply` after unlocking Bitwarden; open a new terminal.
+- **Template errors**: Verify Bitwarden note structure matches template expectations (custom field names).
+- **"bw: command not found"**: Ensure `bitwarden-cli` is in packages (see `modules/home/packages.nix`).
+- **SSH Agent not working**: Verify Bitwarden SSH Agent is enabled in settings and socket exists at `~/.bitwarden-ssh-agent.sock`.
 
 ## Notes
 
-- Backup Yubikey: not configured here; set up later as separate task.
+- SSH keys are managed by Bitwarden SSH Agent (see `docs/ssh.md`).
+- sops-nix is only used for boot-time secrets (Harmonia cache signing key).
 - This doc supersedes the old `ai-environment-variables.md` (merged).

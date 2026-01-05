@@ -126,21 +126,74 @@ Then apply: `sudo darwin-rebuild switch --flake .`
 
 ---
 
-## SSH Builder Key and Remote Builds
+## Native Linux Builder (Determinate Nix)
 
-For remote builds and automation, a dedicated passphraseless SSH key is available.
+Determinate Nix provides a native Linux builder via the `determinate-nixd` daemon, configured automatically in `/etc/nix/nix.conf`.
 
-See [SSH Documentation](ssh.md) for details on:
+### How It Works
 
-- Builder key location (`~/.ssh/id_ed25519_builder`)
-- Host aliases (`<hostname>-builder`)
-- Server configuration
+- Uses `determinate-nixd` daemon as external builder
+- **NO SSH required** - daemon handles authentication internally
+- Supports both `aarch64-linux` and `x86_64-linux` builds
+- Configured automatically when Determinate Nix is installed
 
-### Remote builder options (Determinate Nix)
+### Usage
 
-- `nix.linux-builder` module is blocked (Determinate Nix sets `nix.enable = false`).
-- Use ad-hoc `--builders` with the builder key, or run a Linux VM (OrbStack/UTM) as SSH builder.
-- Binary cache integration: see [binary-cache.md](binary-cache.md) for using Harmonia in CI/automation.
+```bash
+# Build for Linux (aarch64)
+nix build --impure --expr '(import <nixpkgs> { system = "aarch64-linux"; }).hello'
+
+# Build for Linux (x86_64)
+nix build --impure --expr '(import <nixpkgs> { system = "x86_64-linux"; }).hello'
+```
+
+### Verification
+
+```bash
+# Check nix.conf for external-builders
+cat /etc/nix/nix.conf | grep external-builders
+
+# Should show something like:
+# external-builders = [{"args":["builder"],"program":"/usr/local/bin/determinate-nixd","systems":["aarch64-linux","x86_64-linux"]}]
+```
+
+### Known Limitations
+
+- **Network access**: Derivations requiring network access during build may fail due to DNS issues (GitHub issue #294)
+- **Workaround**: Use remote SSH builders with the builder key for network-dependent builds
+
+### SSH Builder Key (Backup)
+
+For builds requiring network access or remote builders, a dedicated passphraseless SSH key is available:
+
+- Location: `~/.ssh/id_ed25519_builder`
+- Host aliases: `<hostname>-builder` (e.g., `serious-callers-only-builder`)
+- Configured in `modules/home/ssh.nix` with `IdentityAgent = none`
+
+Use ad-hoc `--builders` with this key for remote Linux VMs or CI.
+
+---
+
+## Secrets Encryption (sops-nix)
+
+For boot-time secrets that must be available before user login, sops-nix is still used.
+
+### Scope
+
+sops-nix is **only** used for:
+
+- Harmonia cache signing key (boot-time requirement)
+
+### Not Used For
+
+- API keys → Bitwarden + chezmoi (see `docs/ai-tools-setup.md`)
+- SSH keys → Bitwarden SSH Agent (see `docs/ssh.md`)
+- Atuin sync key → Bitwarden + chezmoi (see `docs/ai-tools-setup.md`)
+
+### Encryption
+
+- **macOS**: age-plugin-yubikey → sops-nix
+- **NixOS**: Host-derived age key → sops-nix
 
 ---
 
@@ -150,3 +203,5 @@ See [SSH Documentation](ssh.md) for details on:
 - Darwin common config: `hosts/common/darwin/default.nix`
 - SSH config: `modules/home/ssh.nix`
 - SSH docs: `docs/ssh.md`
+- Bitwarden setup: `docs/ai-tools-setup.md`
+- Harmonia cache: `docs/binary-cache.md`

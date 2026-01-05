@@ -4,12 +4,12 @@ Need-to-know guide for this repo's SSH setup on macOS (nix-darwin) and NixOS.
 
 ## Overview
 
-| Component              | macOS                         | NixOS                       |
-| ---------------------- | ----------------------------- | --------------------------- |
-| **Interactive SSH**    | Secretive (Secure Enclave)    | Regular ed25519 or Yubikey  |
-| **Automated builds**   | `~/.ssh/id_ed25519_builder`   | `~/.ssh/id_ed25519_builder` |
-| **Secrets encryption** | age-plugin-yubikey (sops-nix) | Host age key (sops-nix)     |
-| **Server**             | sshd via nix-darwin           | sshd via NixOS              |
+| Component              | macOS                       | NixOS                       |
+| ---------------------- | --------------------------- | --------------------------- |
+| **Interactive SSH**    | Bitwarden SSH Agent         | Regular ed25519 or Yubikey  |
+| **Automated builds**   | `~/.ssh/id_ed25519_builder` | `~/.ssh/id_ed25519_builder` |
+| **Secrets encryption** | sops-nix (boot-time only)   | Host age key (sops-nix)     |
+| **Server**             | sshd via nix-darwin         | sshd via NixOS              |
 
 ## Key Strategy
 
@@ -18,10 +18,11 @@ Need-to-know guide for this repo's SSH setup on macOS (nix-darwin) and NixOS.
 │                    SSH Key Architecture                     │
 ├─────────────────────────────────────────────────────────────┤
 │ Interactive Use (macOS):                                    │
-│   Secretive → Secure Enclave → password unlock              │
+│   Bitwarden SSH Agent → Secure Vault → biometric unlock     │
 │   - GitHub, remote hosts, git signing                       │
-│   - Hardware-bound, cannot be exported                      │
-│   - Each Mac needs its own key                              │
+│   - Cloud-synced across devices                             │
+│   - Each Mac gets its own key                               │
+│   - Socket: ~/.bitwarden-ssh-agent.sock                     │
 │                                                             │
 │ Interactive Use (Linux):                                    │
 │   Regular ed25519 or Yubikey FIDO2                          │
@@ -31,8 +32,10 @@ Need-to-know guide for this repo's SSH setup on macOS (nix-darwin) and NixOS.
 │   ~/.ssh/id_ed25519_builder → passphraseless                │
 │   - Remote nix builds, CI, scripts                          │
 │   - Same key can be copied across machines                  │
+│   - IdentityAgent = none (no agent)                          │
 │                                                             │
 │ Secrets Encryption:                                         │
+│   Boot-time only (Harmonia cache signing): sops-nix          │
 │   macOS: age-plugin-yubikey → sops-nix                      │
 │   NixOS: host-derived age key → sops-nix                    │
 └─────────────────────────────────────────────────────────────┘
@@ -42,25 +45,26 @@ Need-to-know guide for this repo's SSH setup on macOS (nix-darwin) and NixOS.
 
 An activation script runs on every `darwin-rebuild switch` to check your SSH key setup. If keys are missing, it will print setup instructions.
 
-### macOS (Secretive)
+### macOS (Bitwarden SSH Agent)
 
-1. **Open Secretive.app** from `/Applications`
-2. **Create a new key** in Secure Enclave
-3. **Create the symlink** (one time, persists across rebuilds):
-
+1. **Open Bitwarden Desktop** from `/Applications`
+2. **Enable SSH Agent**:
+   - Settings → SSH Agent → Enable "Enable SSH Agent"
+   - Set socket path to `~/.bitwarden-ssh-agent.sock`
+3. **Create an SSH key in Bitwarden**:
+   - Create a new item type "SSH Key" in Bitwarden
+   - One key per host (e.g., "serious-callers-only SSH Key", "just-testing SSH Key")
+   - Add public key to GitHub: https://github.com/settings/ssh/new (both authentication AND signing)
+4. **Export public key** for remote host access:
    ```bash
-   # Find your key hash
-   ls ~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys/
-
-   # Create symlink (replace HASH with your key's hash)
-   ln -sf ~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys/HASH.pub ~/.ssh/secretive.pub
+   # Bitwarden SSH Agent provides keys to SSH client
+   # No need to export manually - just add to secrets for authorized_keys
+   ssh-add -L  # Show public keys offered by agent
    ```
-
-4. **Add to GitHub**: https://github.com/settings/ssh/new (both authentication AND signing)
 5. **Add to secrets** for remote host access:
    ```bash
-   cat ~/.ssh/secretive.pub  # copy this
-   sops secrets/secrets.yaml  # add to ssh/authorized_key_secretive
+   ssh-add -L  # Copy the key for your host
+   sops secrets/secrets.yaml  # Add to ssh/authorized_key_bitwarden_<hostname>
    ```
 
 ### macOS (Builder Key)
@@ -89,7 +93,8 @@ Enable in host config (e.g., `hosts/serious-callers-only/default.nix`):
 services.sshd = {
   enable = true;
   authorizedKeysFiles = [
-    config.sops.secrets."ssh/authorized_key_secretive".path
+    config.sops.secrets."ssh/authorized_key_bitwarden_serious-callers-only".path
+    config.sops.secrets."ssh/authorized_key_bitwarden_just-testing".path
     config.sops.secrets."ssh/authorized_key_builder".path
     config.sops.secrets."ssh/authorized_key_yubikey".path
   ];
@@ -108,7 +113,7 @@ Location: `modules/home/ssh.nix`
 
 Key features:
 
-- Secretive agent socket set via `SSH_AUTH_SOCK` environment variable
+- Bitwarden SSH Agent socket set via `SSH_AUTH_SOCK` environment variable
 - Per-host matchBlocks for: `serious-callers-only`, `just-testing`, `sleeper-service`
 - Builder-specific hosts (`*-builder`) use passphraseless key for automation
 - Git signing configured via chezmoi (`chezmoi/dot_gitconfig.tmpl`)
@@ -118,15 +123,17 @@ Key features:
 ```yaml
 # secrets/secrets.yaml
 ssh:
-  authorized_key_secretive: "ecdsa-sha2-nistp256 AAAA... user@host"
+  authorized_key_bitwarden_serious-callers-only: "ssh-ed25519 AAAA... serious-callers-only"
+  authorized_key_bitwarden_just-testing: "ssh-ed25519 AAAA... just-testing"
   authorized_key_builder: "ssh-ed25519 AAAA... builder@host"
-  authorized_key_yubikey: "sk-ssh-ed25519@openssh.com AAAA... user@host"
+  # Note: Yubikey keys are managed separately per host
 ```
 
 Declared in `modules/darwin/secrets.nix`:
 
 ```nix
-sops.secrets."ssh/authorized_key_secretive" = { mode = "0444"; };
+sops.secrets."ssh/authorized_key_bitwarden_serious-callers-only" = { mode = "0444"; };
+sops.secrets."ssh/authorized_key_bitwarden_just-testing" = { mode = "0444"; };
 sops.secrets."ssh/authorized_key_builder" = { mode = "0444"; };
 sops.secrets."ssh/authorized_key_yubikey" = { mode = "0444"; };
 ```
@@ -134,7 +141,7 @@ sops.secrets."ssh/authorized_key_yubikey" = { mode = "0444"; };
 ## Connecting
 
 ```bash
-# Interactive (uses Secretive on macOS)
+# Interactive (uses Bitwarden SSH Agent on macOS)
 ssh serious-callers-only
 ssh just-testing
 ssh sleeper-service
@@ -147,15 +154,15 @@ ssh just-testing-builder
 
 ## Troubleshooting
 
-### SSH not using Secretive
+### SSH not using Bitwarden
 
 ```bash
 # Check agent socket
 echo $SSH_AUTH_SOCK
-# Should be: ~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
+# Should be: ~/.bitwarden-ssh-agent.sock
 
 # If wrong, restart terminal or:
-export SSH_AUTH_SOCK=~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
+export SSH_AUTH_SOCK=~/.bitwarden-ssh-agent.sock
 
 # Verify agent has keys
 ssh-add -l
@@ -164,42 +171,48 @@ ssh-add -l
 ### Permission denied (publickey)
 
 1. Check if your public key is on GitHub / remote host
-2. Verify symlink exists: `ls -la ~/.ssh/secretive.pub`
+2. Verify Bitwarden SSH Agent is enabled: Settings → SSH Agent
 3. Check correct key is in agent: `ssh-add -L`
-4. Verify secrets deployed: `sudo cat /run/secrets/ssh/authorized_key_secretive`
+4. Verify secrets deployed: `sudo cat /run/secrets/ssh/authorized_key_bitwarden_*`
 
-### Secretive not in Applications
-
-Secretive must be in `/Applications` to access Secure Enclave. It's installed via Homebrew cask, not nixpkgs.
-
-### Multiple Secretive keys
-
-If you have multiple keys, ensure the symlink points to the correct one:
+### Bitwarden SSH Agent not working
 
 ```bash
-# List all keys
-ls ~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys/
+# Check socket exists
+ls -la ~/.bitwarden-ssh-agent.sock
 
-# Check which key agent is offering
+# Check Bitwarden is running
+ps aux | grep -i bitwarden
+
+# Restart Bitwarden Desktop and re-enable SSH Agent
+```
+
+### Multiple Bitwarden keys
+
+If you have multiple SSH keys in Bitwarden, check which one is being used:
+
+```bash
+# Check which keys agent is offering
 ssh-add -L
 
-# Compare fingerprints
-ssh-keygen -lf ~/.ssh/secretive.pub
+# Compare fingerprints with GitHub or remote host
+ssh-keygen -lf <(echo "ssh-ed25519 AAAA...")
 ```
 
 ### Git signing fails
 
 ```bash
-# Ensure SSH_AUTH_SOCK is set
-export SSH_AUTH_SOCK=~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
+# Ensure SSH_AUTH_SOCK is set to Bitwarden socket
+export SSH_AUTH_SOCK=~/.bitwarden-ssh-agent.sock
 
-# Test signing
-echo "test" | ssh-keygen -Y sign -f ~/.ssh/secretive.pub -n git
+# Test signing (use public key from Bitwarden agent)
+ssh-add -L | head -1 > /tmp/signing-key.pub
+echo "test" | ssh-keygen -Y sign -f /tmp/signing-key.pub -n git
 ```
 
 ## Adding a New Machine
 
-1. Apply the configuration to install Secretive (macOS) or SSH (Linux)
+1. Apply the configuration and set up Bitwarden SSH Agent (macOS) or SSH (Linux)
 2. Follow the activation script prompts
 3. Add the new public key to `secrets/secrets.yaml`
 4. Add the new public key to GitHub (if needed)
@@ -212,3 +225,4 @@ echo "test" | ssh-keygen -Y sign -f ~/.ssh/secretive.pub -n git
 - Secrets: `secrets/secrets.yaml`, `modules/{darwin,nixos}/secrets.nix`
 - Git signing: `modules/home/git.nix`
 - Automation and builder key usage: `docs/automation.md`
+- Bitwarden setup: `docs/ai-tools-setup.md`
