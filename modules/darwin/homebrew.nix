@@ -40,6 +40,7 @@
       "claude"
       "helium-browser"
       "beeper"
+      "spotify"
     ];
 
     # Mac App Store apps (requires `mas` CLI)

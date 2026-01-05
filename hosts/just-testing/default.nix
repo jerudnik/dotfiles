@@ -36,6 +36,9 @@
   # Services
   # ============================================================
 
+  # Homebrew casks (host-specific additions)
+  homebrew.casks = [ "displaylink" ];
+
   # SSH server for remote access
   # Authorized keys are public keys - no need to encrypt them
   services.sshd = {

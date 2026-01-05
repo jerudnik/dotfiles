@@ -91,6 +91,7 @@
       { app = "/Applications/Helium.app"; }
       { app = "/Applications/Beeper.app"; }
       { app = "/Applications/Obsidian.app"; }
+      { app = "/Applications/Spotify.app"; }
     ];
 
     # Dock size

@@ -30,6 +30,7 @@ with lib;
     # Media
     imv # Image viewer
     mpv # Video player
+    spotify # Spotify desktop client
 
     # Chat
     beeper

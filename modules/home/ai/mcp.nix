@@ -56,9 +56,18 @@ let
     # Exa - AI-powered web search and code context
     # Provides web_search_exa and get_code_context_exa tools
     # API key injected via chezmoi template from secrets.exaKey
+    # Exa - AI-powered web search and code context
+    # Official TypeScript server from exa-mcp-server npm package
     exa = {
-      type = "remote";
-      url = "https://mcp.exa.ai/mcp";
+      type = "local";
+      command = "npx";
+      args = [
+        "-y"
+        "exa-mcp-server"
+      ];
+      env = {
+        EXA_API_KEY = "{env:EXA_API_KEY}";
+      };
       description = "Exa AI web search and code context";
     };
 
@@ -112,6 +121,7 @@ let
       env = {
         MEMORY_FILE_PATH = "${config.home.homeDirectory}/Utility/mcp-memory/memory.jsonl";
       };
+      enabled = false;
       description = "Persistent memory and knowledge graph";
     };
 

@@ -10,6 +10,7 @@ export OPENCODE_ZEN_API_KEY="{{ .value }}"
 
 {{- with $apiKeys.github_token }}
 export GITHUB_TOKEN="{{ .value }}"
+export GITHUB_PERSONAL_ACCESS_TOKEN="{{ .value }}"
 {{- end }}
 
 {{- with $apiKeys.context7 }}

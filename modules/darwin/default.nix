@@ -18,5 +18,6 @@
     ./services/whisper.nix
     ./services/linux-builder.nix
     ./services/harmonia.nix
+    ./services/llama-server.nix
   ];
 }

@@ -56,8 +56,15 @@
 
   # Ollama - LLM inference server
   services.ollama = {
-    enable = true;
+    enable = false;
     host = "0.0.0.0"; # Network accessible
+    port = 11434;
+  };
+
+  # llama.cpp - Local LLM inference via llama-server
+  services.llama-server = {
+    enable = true;
+    host = "0.0.0.0";
     port = 11434;
   };
 
