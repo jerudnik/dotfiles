@@ -33,17 +33,20 @@ This repository now uses a hybrid approach where Nix manages infrastructure whil
 
 - Define infrastructure (Stylix, MCP servers, fonts, host metadata) in Nix.
 - `modules/home/chezmoi-bridge.nix` exports those values to `~/.config/chezmoi/chezmoidata.json`.
-- Chezmoi templates inject pre-computed JSON via helpers like `toPrettyJson`.
+- Chezmoi templates use `include` to read the data file, then inject pre-computed JSON via helpers like `toPrettyJson`.
 - This keeps logic in Nix while allowing dotfiles to live in chezmoi for rapid editing.
 
 Example (`chezmoi/dot_config/opencode/opencode.json.tmpl`):
 
-```json
+```go-template
+{{- $data := include (joinPath .chezmoi.homeDir ".config/chezmoi/chezmoidata.json") | fromJson -}}
 {
   "agent": { "persona": "friendly" },
-  "mcp": {{ .opencode_mcp_config | toPrettyJson }}
+  "mcp": {{ $data.opencode_mcp_config | toPrettyJson }}
 }
 ```
+
+**Important**: Templates use `include` to read data from `~/.config/chezmoi/chezmoidata.json` rather than relying on chezmoi's native `.chezmoidata.*` mechanism. This allows the nix-generated data file to work across all hosts regardless of username.
 
 ## Directory Structure
 
@@ -82,11 +85,13 @@ chezmoi/                              # Source repo (linked to ~/.local/share/ch
 
 Values come from `~/.config/chezmoi/chezmoidata.json`.
 
-- `.stylix.base00` … `.stylix.base0F`: Base16 colors with `#` prefix (`config.lib.stylix.colors.withHashtag`).
-- `.font.monospace`, `.font.size`: Fonts exported by Stylix.
-- `.hostname`, `.username`, `.isDarwin`, `.isLinux`: Host metadata via `config.osConfig.networking.hostName`.
-- `.opencode_mcp_config`, `.claude_config`, `.cursor_config`: Computed MCP payloads.
-- `.secrets.*`: Paths to sops-nix managed secrets (OpenAI, Anthropic, Atuin, etc.).
+After loading with `$data := include ... | fromJson`:
+
+- `$data.stylix.base00` … `$data.stylix.base0F`: Base16 colors with `#` prefix.
+- `$data.font.monospace`, `$data.font.size`: Fonts exported by Stylix.
+- `$data.hostname`, `$data.username`, `$data.isDarwin`, `$data.isLinux`: Host metadata.
+- `$data.opencode_mcp_config`, `$data.claude_config`, `$data.cursor_config`: Computed MCP payloads.
+- `$data.tools.git`, `$data.tools.nix`: Nix store paths to tools.
 
 ## Workflow
 
@@ -126,9 +131,13 @@ apply && chezmoi apply
 ## Adding a New Dotfile Template
 
 1. Create `chezmoi/dot_config/app/config.toml.tmpl` (or relevant path).
-2. Reference computed values: `{{ .stylix.base05 }}`, `{{ .hostname }}`.
-3. Handle OS differences with `{{ if .isDarwin }}…{{ end }}`.
-4. Run `chezmoi apply` to deploy immediately.
+2. Add the data include at the top of the template:
+   ```go-template
+   {{- $data := include (joinPath .chezmoi.homeDir ".config/chezmoi/chezmoidata.json") | fromJson -}}
+   ```
+3. Reference computed values: `{{ $data.stylix.base05 }}`, `{{ $data.hostname }}`.
+4. Handle OS differences with `{{ if $data.isDarwin }}…{{ end }}`.
+5. Run `chezmoi apply` to deploy immediately.
 
 ## Adding or Updating MCP Servers
 

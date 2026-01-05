@@ -59,7 +59,7 @@ Location: `hosts/common/darwin/default.nix`
 determinate-nix.customSettings = {
   extra-substituters = [ "http://serious-callers-only:5000" ];
   extra-trusted-public-keys = [
-    "serious-callers-only-1:J/+Orh0qfTKuVEm//2bA0bXKnTmXGjT02FHu9AK9IxU="
+    "serious-callers-only-1:QrBHwuZWNAmIevJ1ER2JPE6I+2AuRlsD/UhrEXHQOFE="
   ];
 };
 ```
@@ -72,7 +72,7 @@ Location: `hosts/common/nixos/default.nix`
 nix.settings = {
   extra-substituters = [ "http://serious-callers-only:5000" ];
   extra-trusted-public-keys = [
-    "serious-callers-only-1:J/+Orh0qfTKuVEm//2bA0bXKnTmXGjT02FHu9AK9IxU="
+    "serious-callers-only-1:QrBHwuZWNAmIevJ1ER2JPE6I+2AuRlsD/UhrEXHQOFE="
   ];
 };
 ```
@@ -178,16 +178,15 @@ The Harmonia cache (priority 30) should appear before cache.nixos.org (priority 
 ### Generate new signing key
 
 ```bash
-# On the server, generate new key
-nix-store --generate-binary-cache-key harmonia /var/lib/harmonia/secret-key /var/lib/harmonia/public-key
+# On the server, generate new key pair
+nix-store --generate-binary-cache-key serious-callers-only-1 /tmp/harmonia.secret /tmp/harmonia.pub
+
+# View the keys
+cat /tmp/harmonia.secret  # Private key for sops
+cat /tmp/harmonia.pub     # Public key for client configs
 ```
 
-### Extract public key
-
-```bash
-cat /var/lib/harmonia/public-key
-# Output: serious-callers-only-2:ABCDEF...
-```
+**Note**: `nix-serve --generate-secret-key` is broken in nixpkgs; use `nix-store --generate-binary-cache-key` instead.
 
 ### Update configuration
 
