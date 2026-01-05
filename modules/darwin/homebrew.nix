@@ -33,7 +33,6 @@
 
     # GUI applications
     casks = [
-      "bitwarden" # Password manager with SSH Agent (must be cask, not App Store)
       "ghostty"
       "orbstack"
       "iina"

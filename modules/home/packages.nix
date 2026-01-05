@@ -55,7 +55,7 @@
     # ============================================================
     # Security & Authentication
     # ============================================================
-    # secretive installed via Homebrew cask (requires /Applications for Secure Enclave)
+    bitwarden-desktop # Password manager with SSH Agent
     bitwarden-cli # Bitwarden CLI for chezmoi integration
     yubikey-manager # Yubikey management CLI (ykman) - still needed for sops-nix
 
