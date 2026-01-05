@@ -219,10 +219,12 @@
       # ============================================================
       darwinConfigurations = {
         # serious-callers-only - AI inference server and primary workstation
+        # mac-app-util disabled due to ECL/SBCL Xcode 16 build failure
         "serious-callers-only" = mkDarwinSystem {
           hostname = "serious-callers-only";
           hostPath = ./hosts/serious-callers-only;
           username = "john";
+          enableMacAppUtil = false;
         };
 
         # MacBook Air - Work laptop
