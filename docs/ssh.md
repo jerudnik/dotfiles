@@ -115,7 +115,7 @@ Key features:
 
 - Bitwarden SSH Agent socket set via `SSH_AUTH_SOCK` environment variable
 - Per-host matchBlocks for: `serious-callers-only`, `just-testing`, `sleeper-service`
-- Builder-specific hosts (`*-builder`) use passphraseless key for automation
+- Bitwarden SSH Agent for all interactive connections
 - Git signing configured via chezmoi (`chezmoi/dot_gitconfig.tmpl`)
 
 ## Secrets Structure
@@ -146,11 +146,10 @@ ssh serious-callers-only
 ssh just-testing
 ssh sleeper-service
 ssh github.com
-
-# Automated (uses builder key)
-ssh serious-callers-only-builder
-ssh just-testing-builder
 ```
+
+Note: Determinate Nix handles native Linux builds automatically via `external-builders`.
+The builder key (`~/.ssh/id_ed25519_builder`) is only for **inbound** automation (CI/build hosts connecting to this machine).
 
 ## Troubleshooting
 

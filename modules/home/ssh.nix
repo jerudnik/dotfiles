@@ -1,6 +1,6 @@
 # SSH client configuration
 # Configures SSH hosts for cross-machine access
-# Uses Bitwarden SSH Agent for interactive SSH, builder key for automation
+# Uses Bitwarden SSH Agent for interactive SSH; builder key is only for inbound automation
 {
   config,
   pkgs,
@@ -61,18 +61,19 @@
         echo ""
       fi
       
-      # Check for builder key (still needed for automation)
+      # Check for builder key (inbound automation to this host)
       if [[ ! -f "$SSH_DIR/id_ed25519_builder" ]]; then
         echo ""
         echo "╔══════════════════════════════════════════════════════════════════╗"
         echo "║  BUILDER KEY NOT FOUND                                           ║"
         echo "╠══════════════════════════════════════════════════════════════════╣"
-        echo "║  The automated builder key is missing.                           ║"
+        echo "║  The builder key used by remote CI hosts is missing.             ║"
         echo "║                                                                  ║"
-        echo "║  To generate (passphraseless for automation):                    ║"
+        echo "║  To generate a passphraseless key for inbound automation:        ║"
         echo "║    ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_builder -N \"\" -C \"builder@\$HOSTNAME\"" 
         echo "║                                                                  ║"
-        echo "║  Then add the public key to remote hosts' authorized_keys.       ║"
+        echo "║  Add the public key to the destination host's authorized_keys    ║"
+        echo "║  (e.g., serious-callers-only) so it can accept builder traffic.  ║"
         echo "╚══════════════════════════════════════════════════════════════════╝"
         echo ""
       fi
@@ -165,18 +166,6 @@
         user = "john";
       };
 
-      # Builder alias: passphraseless key for automated builds (Task A)
-      "serious-callers-only-builder" = {
-        hostname = "serious-callers-only";
-        user = "john";
-        identityFile = [ "~/.ssh/id_ed25519_builder" ];
-        identitiesOnly = true;
-        extraOptions = {
-          # Bypass Bitwarden agent for automated/non-interactive use
-          IdentityAgent = "none";
-        };
-      };
-
       # ============================================================
       # MacBook Air (just-testing)
       # ============================================================
@@ -191,17 +180,6 @@
       "just-testing.local" = {
         hostname = "just-testing.local";
         user = "jrudnik";
-      };
-
-      # Builder alias for automated builds
-      "just-testing-builder" = {
-        hostname = "just-testing";
-        user = "jrudnik";
-        identityFile = [ "~/.ssh/id_ed25519_builder" ];
-        identitiesOnly = true;
-        extraOptions = {
-          IdentityAgent = "none";
-        };
       };
 
       # ============================================================
@@ -220,23 +198,13 @@
         user = "john";
       };
 
-      # Builder alias for automated builds
-      "sleeper-service-builder" = {
-        hostname = "sleeper-service";
-        user = "john";
-        identityFile = [ "~/.ssh/id_ed25519_builder" ];
-        identitiesOnly = true;
-        extraOptions = {
-          IdentityAgent = "none";
-        };
-      };
     };
 
     # Global SSH settings
     extraConfig = ''
       # Bitwarden Desktop handles key management via SSH Agent
       # Unlock Bitwarden to make keys available
-      # Builder aliases use passphraseless keys for automation
+      # Determinate Nix handles native Linux builders; the builder key is only for inbound automation.
     '';
   };
 }

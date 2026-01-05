@@ -29,11 +29,10 @@
   themes.mode = "light";
 
   # ============================================================
-  # Linux Builder (for cross-compilation and remote building)
+  # Native Linux builds
   # ============================================================
-  # Ephemeral VM that spins up on-demand for Linux builds
-  # Used by: sleeper-service (NixOS), other darwin machines needing Linux pkgs
-  services.linux-builder.enable = true;
+  # Determinate Nix external-builders handle Linux builds automatically on
+  # Darwin, so no explicit `services.linux-builder` configuration is required.
 
   # User configuration
   users.users.john = {
@@ -43,7 +42,7 @@
 
     # SSH authorized keys for:
     # - Interactive access from both Macs (Bitwarden-managed keys)
-    # - Automated access from the builder key (file-based, for linux-builder)
+    # - Automated access via the builder key (for inbound CI/build hosts)
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPHqpAWaR2rb6eHxcW2dr1qEzELbonR5vczp5srxgp2W serious-callers-only"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUET4JHxbky06pOvg0gCE39iTt8X5aeulQPliJoq8Y6 just-testing"

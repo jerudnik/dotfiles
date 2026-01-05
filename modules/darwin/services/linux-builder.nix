@@ -1,30 +1,17 @@
-# Linux builder VM for cross-compilation
-# Provides on-demand Linux build capability for darwin machines
-#
-# NOTE: Temporarily disabled due to nix.enable=false with Determinate Nix.
-# Enable when virtualization access is confirmed and Determinate Nix is reconfigured.
+# Linux builder - handled by Determinate Nix external builders
+# Determinate Nix ships native Linux build support via external-builders, so
+# there is no longer any explicit `services.linux-builder` configuration.
 {
   config,
-  lib,
   pkgs,
+  lib,
   ...
 }:
 
-with lib;
-let
-  cfg = config.services.linux-builder;
-in
 {
-  options.services.linux-builder = {
-    enable = mkEnableOption "Linux builder VM for cross-compilation";
-  };
-
-  config = mkIf cfg.enable {
-    # Temporarily disabled - requires nix.enable=true
-    # nix.linux-builder = {
-    #   enable = true;
-    #   maxJobs = 2;
-    #   speedFactor = 2;
-    # };
-  };
+  options.services.linux-builder = lib.mkRemovedOptionModule [ "services" "linux-builder" ] ''
+    Determinate Nix now provisions native Linux builders automatically via
+    `external-builders`. Remove any lingering `services.linux-builder` options
+    and rely on Determinate Nix for cross-compilation support.
+  '';
 }

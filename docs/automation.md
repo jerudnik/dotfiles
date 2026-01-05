@@ -162,15 +162,15 @@ cat /etc/nix/nix.conf | grep external-builders
 - **Network access**: Derivations requiring network access during build may fail due to DNS issues (GitHub issue #294)
 - **Workaround**: Use remote SSH builders with the builder key for network-dependent builds
 
-### SSH Builder Key (Backup)
+### SSH Builder Key (Inbound Access)
 
-For builds requiring network access or remote builders, a dedicated passphraseless SSH key is available:
+A dedicated passphraseless SSH key exists for **inbound** automation (CI/build hosts connecting to this machine):
 
 - Location: `~/.ssh/id_ed25519_builder`
-- Host aliases: `<hostname>-builder` (e.g., `serious-callers-only-builder`)
-- Configured in `modules/home/ssh.nix` with `IdentityAgent = none`
+- Public key added to `users.users.<user>.openssh.authorizedKeys.keys` in host configs
+- Used by remote CI systems or build hosts that need to push/pull to this machine
 
-Use ad-hoc `--builders` with this key for remote Linux VMs or CI.
+Note: Outbound SSH to other hosts uses the Bitwarden SSH Agent (no dedicated builder matchBlocks).
 
 ---
 
