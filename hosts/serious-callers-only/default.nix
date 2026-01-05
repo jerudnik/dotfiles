@@ -12,6 +12,9 @@
   imports = [
     # Common darwin configuration
     ../common/darwin
+
+    # Harmonia secrets (cache signing key)
+    ../../modules/darwin/secrets.nix
   ];
 
   # Primary user for nix-darwin (required for user-specific settings)
@@ -62,12 +65,7 @@
   # SSH server for remote access
   services.sshd = {
     enable = true;
-    authorizedKeysFiles = [
-      config.sops.secrets."ssh/authorized_key_secretive".path
-      config.sops.secrets."ssh/authorized_key_secretive_jt".path
-      config.sops.secrets."ssh/authorized_key_builder".path
-      config.sops.secrets."ssh/authorized_key_yubikey".path
-    ];
+    # Authorized keys are now managed outside of sops-nix (e.g., via chezmoi)
   };
 
   # Harmonia binary cache

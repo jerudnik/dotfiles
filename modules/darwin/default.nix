@@ -11,7 +11,6 @@
   imports = [
     ./system.nix
     ./homebrew.nix
-    ./secrets.nix
     ./sudo.nix
     ./services/sshd.nix
     ./services/ollama.nix

@@ -33,67 +33,6 @@
 
     # Declare secrets to be decrypted
     secrets = {
-      # OpenCode Zen API key
-      # Decrypted to /run/secrets/api_keys/opencode_zen
-      # Readable by primary user so it can be loaded into environment
-      "api_keys/opencode_zen" = {
-        owner = config.system.primaryUser;
-        mode = "0400";
-      };
-
-      # GitHub Personal Access Token
-      # Used by MCP github server
-      # Decrypted to /run/secrets/api_keys/github_token
-      "api_keys/github_token" = {
-        owner = config.system.primaryUser;
-        mode = "0400";
-      };
-
-      # Context7 API key (optional, for authenticated access)
-      # Decrypted to /run/secrets/api_keys/context7
-      "api_keys/context7" = {
-        owner = config.system.primaryUser;
-        mode = "0400";
-      };
-
-      # Exa API key for web search MCP server
-      # Decrypted to /run/secrets/api_keys/exa
-      "api_keys/exa" = {
-        owner = config.system.primaryUser;
-        mode = "0400";
-      };
-
-      # SSH authorized public keys
-      # Decrypted to /run/secrets/ssh/
-      # Used by sshd module for system-wide authorized_keys
-
-      # Secretive key (Secure Enclave, Touch ID unlock) - interactive use
-      # serious-callers-only's Secretive key
-      "ssh/authorized_key_secretive" = {
-        mode = "0444"; # World-readable (it's a public key)
-      };
-
-      # just-testing's Secretive key
-      "ssh/authorized_key_secretive_jt" = {
-        mode = "0444"; # World-readable (it's a public key)
-      };
-
-      # Builder key (passphraseless ed25519) - automated builds
-      "ssh/authorized_key_builder" = {
-        mode = "0444"; # World-readable (it's a public key)
-      };
-
-      # Legacy Yubikey key (kept for transition period)
-      "ssh/authorized_key_yubikey" = {
-        mode = "0444"; # World-readable (it's a public key)
-      };
-
-      # Atuin sync key
-      "atuin/key" = {
-        owner = config.system.primaryUser;
-        mode = "0400";
-      };
-
       # Harmonia signing key (private)
       "harmonia/signing_key" = {
         owner = "root";
