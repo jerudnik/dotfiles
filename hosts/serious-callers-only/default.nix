@@ -40,6 +40,15 @@
     name = "john";
     home = "/Users/john";
     shell = pkgs.zsh;
+
+    # SSH authorized keys for:
+    # - Interactive access from both Macs (Bitwarden-managed keys)
+    # - Automated access from the builder key (file-based, for linux-builder)
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPHqpAWaR2rb6eHxcW2dr1qEzELbonR5vczp5srxgp2W serious-callers-only"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUET4JHxbky06pOvg0gCE39iTt8X5aeulQPliJoq8Y6 just-testing"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHKv76hdR1c0Uu7bcd2WUNisuSmQA1k/uPZsF5dDrT2z builder@serious-callers-only"
+    ];
   };
 
   # ============================================================
