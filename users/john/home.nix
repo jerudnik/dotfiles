@@ -13,10 +13,10 @@
     ../../modules/home
   ];
 
-  # Copy apps to ~/Applications for Spotlight integration (replaces mac-app-util)
-  # See: https://github.com/nix-community/home-manager/pull/8031
-  targets.darwin.copyApps.enable = true;
-  targets.darwin.linkApps.enable = false;
+  # Link apps to ~/Applications (symlinks, no App Management permission needed)
+  # Note: copyApps works better with Spotlight but requires App Management permission
+  # which gets revoked during darwin-rebuild. Using linkApps as workaround.
+  targets.darwin.linkApps.enable = true;
 
   # Home Manager needs a bit of information about you and the paths it should manage
   home = {
