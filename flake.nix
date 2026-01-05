@@ -129,7 +129,6 @@
           hostname,
           hostPath,
           username,
-          enableMacAppUtil ? true, # Set false to skip SBCL-dependent mac-app-util
         }:
         nix-darwin.lib.darwinSystem {
           system = "aarch64-darwin";
@@ -147,8 +146,8 @@
             # Stylix theming
             stylix.darwinModules.stylix
 
-            # mac-app-util for Spotlight/Raycast integration (optional, uses SBCL)
-            (lib.optionalAttrs enableMacAppUtil mac-app-util.darwinModules.default)
+            # Note: mac-app-util removed - using home-manager's native targets.darwin.copyApps instead
+            # (mac-app-util requires SBCL which has ECL build issues with Xcode 16)
 
             # Host-specific configuration
             hostPath
@@ -163,10 +162,8 @@
                 users.${username} = ./users/${username}/home.nix;
                 backupFileExtension = "backup";
 
-                # mac-app-util for Spotlight/Raycast integration (optional, uses SBCL)
-                sharedModules = lib.optionals enableMacAppUtil [
-                  mac-app-util.homeManagerModules.default
-                ];
+                # Enable native copyApps for Spotlight integration (no SBCL dependency)
+                sharedModules = [ ];
               };
             }
 
@@ -219,12 +216,10 @@
       # ============================================================
       darwinConfigurations = {
         # serious-callers-only - AI inference server and primary workstation
-        # mac-app-util disabled due to ECL/SBCL Xcode 16 build failure
         "serious-callers-only" = mkDarwinSystem {
           hostname = "serious-callers-only";
           hostPath = ./hosts/serious-callers-only;
           username = "john";
-          enableMacAppUtil = false;
         };
 
         # MacBook Air - Work laptop

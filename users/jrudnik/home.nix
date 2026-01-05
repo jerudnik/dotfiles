@@ -11,8 +11,12 @@
   imports = [
     # Import all home-manager modules (shared with john)
     ../../modules/home
-    # Note: mac-app-util.homeManagerModules.default is imported via flake.nix sharedModules
   ];
+
+  # Copy apps to ~/Applications for Spotlight integration (replaces mac-app-util)
+  # See: https://github.com/nix-community/home-manager/pull/8031
+  targets.darwin.copyApps.enable = true;
+  targets.darwin.linkApps.enable = false;
 
   # Home Manager needs a bit of information about you and the paths it should manage
   home = {
@@ -29,10 +33,4 @@
 
   # Let Home Manager install and manage itself
   programs.home-manager.enable = true;
-
-  # ============================================================
-  # Editor Configuration
-  # ============================================================
-
-  # mac-app-util is enabled via flake.nix sharedModules + hosts/common/darwin
 }
