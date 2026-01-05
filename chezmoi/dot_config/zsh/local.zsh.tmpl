@@ -1,4 +1,22 @@
 # Local Zsh Configuration
 # Managed by chezmoi - Host-specific settings for {{ .hostname }}
 
+{{- $apiKeys := bitwardenFields "item" "API Keys" }}
+
+{{- with $apiKeys.opencode_zen }}
+export OPENCODE_ZEN_API_KEY="{{ .value }}"
+{{- end }}
+
+{{- with $apiKeys.github_token }}
+export GITHUB_TOKEN="{{ .value }}"
+{{- end }}
+
+{{- with $apiKeys.context7 }}
+export CONTEXT7_API_KEY="{{ .value }}"
+{{- end }}
+
+{{- with $apiKeys.exa }}
+export EXA_API_KEY="{{ .value }}"
+{{- end }}
+
 # Add any host-specific aliases or functions below

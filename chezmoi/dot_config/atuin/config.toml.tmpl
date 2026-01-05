@@ -27,5 +27,8 @@ email = "john.rudnik@gmail.com"
 # Stats
 common_prefix = ["sudo", "nix"]
 
-# Sync key file (populated from Bitwarden by chezmoi)
-key_path = "~/.config/atuin/key"
+# Sync key (populated from Bitwarden "Local Keys" note)
+{{- $localKeys := bitwardenFields "item" "Local Keys" }}
+{{- with $localKeys.atuin_key }}
+key = "{{ .value }}"
+{{- end }}

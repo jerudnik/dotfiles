@@ -69,13 +69,5 @@ in
       git = lib.getExe pkgs.git;
       nix = lib.getExe pkgs.nix;
     };
-    secrets = {
-      # Only include secrets that actually exist in secrets.nix
-      opencodeZenKey = "/run/secrets/api_keys/opencode_zen";
-      githubToken = "/run/secrets/api_keys/github_token";
-      context7Key = "/run/secrets/api_keys/context7";
-      exaKey = "/run/secrets/api_keys/exa";
-      atuinKey = "/run/secrets/atuin/key";
-    };
   };
 }

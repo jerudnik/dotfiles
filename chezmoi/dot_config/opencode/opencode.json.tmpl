@@ -319,13 +319,12 @@
   "mcp": {{- $mcp := .opencode_mcp_config -}}
   {{- /* Inject Exa API key into headers from Bitwarden */ -}}
   {{- if hasKey $mcp "exa" -}}
-    {{- $apiKeys := bitwarden "item" "API Keys" -}}
-    {{- range $apiKeys.fields -}}
-      {{- if eq .name "exa" -}}
-        {{- $exa := index $mcp "exa" -}}
-        {{- $_ := set $exa "headers" (dict "x-api-key" .value) -}}
-      {{- end -}}
+    {{- $apiKeys := bitwardenFields "item" "API Keys" -}}
+    {{- with $apiKeys.exa -}}
+      {{- $exa := index $mcp "exa" -}}
+      {{- $_ := set $exa "headers" (dict "x-api-key" .value) -}}
     {{- end -}}
   {{- end -}}
   {{ $mcp | toPrettyJson | indent 2 | trim }}
+
 }
