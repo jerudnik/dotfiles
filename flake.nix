@@ -225,12 +225,11 @@
           username = "john";
         };
 
-        # MacBook Air - Work laptop (mac-app-util disabled due to SBCL/Xcode 16 issue)
+        # MacBook Air - Work laptop
         "just-testing" = mkDarwinSystem {
           hostname = "just-testing";
           hostPath = ./hosts/just-testing;
           username = "jrudnik";
-          enableMacAppUtil = false;
         };
       };
 

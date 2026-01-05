@@ -25,11 +25,6 @@
   themes.scheme = "modus";
   themes.mode = "dark";
 
-  # Temporarily disable Stylix to avoid ECL/SBCL build failure on Xcode 16
-  # mac-app-util is disabled at flake level (enableMacAppUtil = false)
-  # Both depend on SBCL which fails to build with newer Apple SDKs
-  stylix.enable = false;
-
   # User configuration
   users.users.jrudnik = {
     name = "jrudnik";
