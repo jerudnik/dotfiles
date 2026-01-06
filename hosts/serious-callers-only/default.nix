@@ -39,15 +39,9 @@
     name = "john";
     home = "/Users/john";
     shell = pkgs.zsh;
-
-    # SSH authorized keys for:
-    # - Interactive access from both Macs (Bitwarden-managed keys)
-    # - Automated access via the builder key (for inbound CI/build hosts)
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPHqpAWaR2rb6eHxcW2dr1qEzELbonR5vczp5srxgp2W serious-callers-only"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUET4JHxbky06pOvg0gCE39iTt8X5aeulQPliJoq8Y6 just-testing"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHKv76hdR1c0Uu7bcd2WUNisuSmQA1k/uPZsF5dDrT2z builder@serious-callers-only"
-    ];
+    # NOTE: Don't use openssh.authorizedKeys.keys here - it's a NixOS construct
+    # that isn't fully supported on nix-darwin. Use services.sshd.authorizedKeys
+    # instead, which writes keys to /etc/ssh/authorized_keys.d/%u.
   };
 
   # ============================================================
@@ -78,9 +72,16 @@
   services.tailscale.enable = true;
 
   # SSH server for remote access
+  # Uses custom sshd module which writes keys to /etc/ssh/authorized_keys.d/%u
   services.sshd = {
     enable = true;
-    # Authorized keys are now managed outside of sops-nix (e.g., via chezmoi)
+    authorizedKeys = [
+      # Interactive access from both Macs (Bitwarden-managed keys)
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPHqpAWaR2rb6eHxcW2dr1qEzELbonR5vczp5srxgp2W serious-callers-only"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUET4JHxbky06pOvg0gCE39iTt8X5aeulQPliJoq8Y6 just-testing"
+      # Automated access via builder key (for inbound CI/build hosts)
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHKv76hdR1c0Uu7bcd2WUNisuSmQA1k/uPZsF5dDrT2z builder@serious-callers-only"
+    ];
   };
 
   # Harmonia binary cache
