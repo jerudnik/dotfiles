@@ -157,7 +157,8 @@
       "serious-callers-only" = {
         hostname = "serious-callers-only";
         user = "john";
-        # Uses Bitwarden agent from wildcard
+        # Ghostty's xterm-ghostty terminfo isn't available on remote; fall back
+        setEnv.TERM = "xterm-256color";
       };
 
       # Fallback: Local network (mDNS/Bonjour)
@@ -174,6 +175,8 @@
       "just-testing" = {
         hostname = "just-testing";
         user = "jrudnik";
+        # Ghostty's xterm-ghostty terminfo isn't available on remote; fall back
+        setEnv.TERM = "xterm-256color";
       };
 
       # Fallback: Local network (mDNS/Bonjour)
