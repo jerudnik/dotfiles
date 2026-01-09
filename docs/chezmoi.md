@@ -54,26 +54,36 @@ Example (`chezmoi/dot_config/opencode/opencode.json.tmpl`):
 chezmoi/                              # Source repo (linked to ~/.local/share/chezmoi)
 ├── .chezmoi.toml.tmpl
 ├── .chezmoiignore
-├── dot_gitconfig.tmpl
+├── dot_gitconfig.tmpl                # Git config with FIDO2 Yubikey signing
 ├── dot_config/
-│   ├── nvim/init.lua                 # kickstart.nvim base config (customizable)
-│   ├── ghostty/config.tmpl
-│   ├── starship.toml.tmpl
-│   ├── atuin/config.toml.tmpl
+│   ├── nvim/init.lua                 # kickstart.nvim base config
+│   ├── ghostty/config.tmpl           # Terminal with Stylix colors
+│   ├── starship.toml.tmpl            # Prompt with Stylix colors
+│   ├── atuin/
+│   │   ├── config.toml.tmpl          # Shell history with Bitwarden key
+│   │   └── private_key.tmpl          # Atuin sync key
+│   ├── zed/settings.json.tmpl        # Zed editor with MCP and Nix LSP (nil)
 │   ├── zsh/
-│   │   ├── aliases.zsh
-│   │   ├── functions.zsh
-│   │   └── local.zsh.tmpl
-│   ├── opencode/opencode.json.tmpl
-│   └── ai/
-│       └── README.md (future docs)
+│   │   ├── aliases.zsh               # Shell aliases (static)
+│   │   ├── functions.zsh             # Shell functions (static)
+│   │   └── local.zsh.tmpl            # Host-specific config, API keys
+│   └── opencode/opencode.json.tmpl   # OpenCode MCP config
 ├── dot_cursor/mcp.json.tmpl          # Cursor MCP config (Computed Partial)
-├── "Library/Application Support"/
-│   └── Claude/claude_desktop_config.json.tmpl  # Claude Desktop config
-└── dot_ssh/                          # Future SSH config
+├── private_Library/                  # macOS Library (private_ = restricted perms)
+│   └── private_Application Support/
+│       └── Claude/
+│           └── claude_desktop_config.json.tmpl
+└── dot_Notes/                        # Obsidian vault templates
+    └── obsidian/robinson/
+        └── .obsidian/plugins/...
 ```
 
-**Key fix:** Claude templates live under `chezmoi/Library/Application Support/Claude/` (spaces literal) and Cursor templates live under `chezmoi/dot_cursor/`.
+> **Note**: The `private_` prefix is a chezmoi convention that creates files/directories with restricted permissions (0700 for dirs, 0600 for files). This is used for macOS `~/Library/` paths which contain sensitive application data.
+
+**Path conventions:**
+- Claude Desktop: `private_Library/private_Application Support/Claude/` → `~/Library/Application Support/Claude/`
+- Cursor: `dot_cursor/` → `~/.cursor/`
+- The `private_` prefix ensures proper permissions and is stripped during apply.
 
 ### Neovim configuration
 

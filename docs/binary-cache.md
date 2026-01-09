@@ -246,7 +246,24 @@ sops.secrets."harmonia/signing_key" = {
   group = "wheel";
   mode = "0400";  # Read-only for root
 };
-```
+
+
+## Known Issues
+
+### Public Key Mismatch (Bug)
+
+Darwin and NixOS clients currently use different public keys:
+
+| Platform | Key (truncated)                      | Location                          |
+| -------- | ------------------------------------ | --------------------------------- |
+| Darwin   | `...QrBHwuZWNAmIevJ1ER2JPE6I+2Aul...`  | `hosts/common/darwin/default.nix` |
+| NixOS    | `...J/+Orh0qfTKuVEm//2bA0bXKnTmX...` | `hosts/common/nixos/default.nix`  |
+
+**Expected**: All platforms should use the same public key matching the Harmonia signing key in `secrets/secrets.yaml`.
+
+**Impact**: Cache hits may fail on one platform if the signing key was rotated and only one client config was updated.
+
+**Fix**: Verify which key matches the current signing secret, then update the incorrect client configuration. See GitHub issue for tracking.
 
 ## References
 

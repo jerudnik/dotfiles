@@ -4,12 +4,14 @@ Need-to-know guide for this repo's SSH setup on macOS (nix-darwin) and NixOS.
 
 ## Overview
 
-| Component              | macOS                       | NixOS                       |
-| ---------------------- | --------------------------- | --------------------------- |
-| **Interactive SSH**    | Bitwarden SSH Agent         | Regular ed25519 or Yubikey  |
-| **Automated builds**   | `~/.ssh/id_ed25519_builder` | `~/.ssh/id_ed25519_builder` |
-| **Secrets encryption** | sops-nix (boot-time only)   | Host age key (sops-nix)     |
-| **Server**             | sshd via nix-darwin         | sshd via NixOS              |
+| Component              | macOS (Current)             | NixOS (Current)             | Target (All Platforms)      |
+| ---------------------- | --------------------------- | --------------------------- | --------------------------- |
+| **Interactive SSH**    | Bitwarden SSH Agent         | sops-nix authorized_keys    | Bitwarden SSH Agent         |
+| **Automated builds**   | `~/.ssh/id_ed25519_builder` | `~/.ssh/id_ed25519_builder` | Same                        |
+| **Secrets encryption** | sops-nix (boot-time only)   | sops-nix (multiple uses)    | sops-nix (boot-time only)   |
+| **Server**             | sshd via nix-darwin         | sshd via NixOS              | Same                        |
+
+> **Note**: NixOS SSH is being migrated to Bitwarden SSH Agent. See GitHub issue for progress.
 
 ## Key Strategy
 
@@ -24,9 +26,13 @@ Need-to-know guide for this repo's SSH setup on macOS (nix-darwin) and NixOS.
 │   - Each Mac gets its own key                               │
 │   - Socket: ~/.bitwarden-ssh-agent.sock                     │
 │                                                             │
-│ Interactive Use (Linux):                                    │
-│   Regular ed25519 or Yubikey FIDO2                          │
-│   - Stored in ~/.ssh/id_ed25519                             │
+│ Interactive Use (Linux) - CURRENT:                          │
+│   sops-nix authorized_keys (temporary)                      │
+│   - Keys: secretive, builder, yubikey                       │
+│                                                             │
+│ Interactive Use (Linux) - TARGET:                           │
+│   Bitwarden SSH Agent (same as macOS)                       │
+│   - Socket: ~/.bitwarden-ssh-agent.sock                     │
 │                                                             │
 │ Automated Builds (all platforms):                           │
 │   ~/.ssh/id_ed25519_builder → passphraseless                │
@@ -75,13 +81,21 @@ For automated builds (Task A):
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_builder -N "" -C "builder@$(hostname)"
 ```
 
-### Linux (NixOS)
+### Linux (NixOS) - Current State
 
-Generate a regular ed25519 key:
+NixOS currently uses sops-nix for authorized_keys (migration to Bitwarden SSH Agent pending):
 
-```bash
-ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -C "user@hostname"
+```nix
+# modules/nixos/secrets.nix - current implementation
+sops.secrets."ssh/authorized_key_secretive" = { mode = "0444"; };
+sops.secrets."ssh/authorized_key_builder" = { mode = "0444"; };
+sops.secrets."ssh/authorized_key_yubikey" = { mode = "0444"; };
 ```
+
+### Linux (NixOS) - Target State
+
+Once migrated, NixOS will use Bitwarden SSH Agent identical to macOS setup.
+See GitHub issue for migration progress.
 
 ## Server Configuration
 
@@ -90,14 +104,10 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -C "user@hostname"
 Enable in host config (e.g., `hosts/serious-callers-only/default.nix`):
 
 ```nix
+# Current: Darwin sshd does not use sops secrets for authorized_keys
+# Authorized keys are managed outside Nix configuration
 services.sshd = {
   enable = true;
-  authorizedKeysFiles = [
-    config.sops.secrets."ssh/authorized_key_bitwarden_serious-callers-only".path
-    config.sops.secrets."ssh/authorized_key_bitwarden_just-testing".path
-    config.sops.secrets."ssh/authorized_key_builder".path
-    config.sops.secrets."ssh/authorized_key_yubikey".path
-  ];
   passwordAuthentication = false;
   permitRootLogin = "no";
 };
@@ -120,23 +130,34 @@ Key features:
 
 ## Secrets Structure
 
-```yaml
-# secrets/secrets.yaml
-ssh:
-  authorized_key_bitwarden_serious-callers-only: "ssh-ed25519 AAAA... serious-callers-only"
-  authorized_key_bitwarden_just-testing: "ssh-ed25519 AAAA... just-testing"
-  authorized_key_builder: "ssh-ed25519 AAAA... builder@host"
-  # Note: Yubikey keys are managed separately per host
+### Current State
+
+**Darwin (macOS)**: No SSH secrets in sops-nix (uses Bitwarden SSH Agent directly)
+```nix
+# modules/darwin/secrets.nix
+# Only declares harmonia/signing_key - no SSH secrets
 ```
 
-Declared in `modules/darwin/secrets.nix`:
-
+**NixOS**: SSH authorized keys managed via sops-nix (temporary)
 ```nix
-sops.secrets."ssh/authorized_key_bitwarden_serious-callers-only" = { mode = "0444"; };
-sops.secrets."ssh/authorized_key_bitwarden_just-testing" = { mode = "0444"; };
+# modules/nixos/secrets.nix
+sops.secrets."ssh/authorized_key_secretive" = { mode = "0444"; };
 sops.secrets."ssh/authorized_key_builder" = { mode = "0444"; };
 sops.secrets."ssh/authorized_key_yubikey" = { mode = "0444"; };
 ```
+
+```yaml
+# secrets/secrets.yaml (NixOS only)
+ssh:
+  authorized_key_secretive: "ssh-ed25519 AAAA... secretive"
+  authorized_key_builder: "ssh-ed25519 AAAA... builder@host"
+  authorized_key_yubikey: "sk-ssh-ed25519 AAAA... yubikey"
+```
+
+### Target Architecture
+
+All platforms will use Bitwarden SSH Agent. No SSH secrets in sops-nix.
+Authorized keys for incoming SSH connections will be managed via Bitwarden-exported public keys.
 
 ## Connecting
 

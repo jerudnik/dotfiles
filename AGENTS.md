@@ -29,8 +29,9 @@ There are no tests. Validation is via `nix flake check` and successful `apply`.
 - `hosts/` – Per-host configs (`serious-callers-only`, `just-testing`, `sleeper-service`)
 - `modules/base/` – Cross-platform (stylix theming)
 - `modules/darwin/` – macOS system, homebrew, secrets, services
+  - Services: harmonia, llama-server, ollama, sshd, tailscale, whisper (linux-builder deprecated → Determinate Nix)
 - `modules/nixos/` – NixOS desktop, security, system
-- `modules/home/` – Home-manager: ai, apps, editors, shell, terminal, packages
+- `modules/home/` – Home-manager: ai, apps, development, editors, shell, terminal, packages, python-tools
 - `users/` – User home-manager configs
 - `themes/` – Base16 color schemes
 - `secrets/` – sops-nix encrypted secrets
@@ -141,8 +142,9 @@ Encrypted with Yubikey-backed age. Decrypts to `/run/secrets/...`. Declare in
 **Chezmoi**: Nix handles packages/services/themes, chezmoi handles dotfile templates.
 Bridge exports Stylix colors to `~/.config/chezmoi/chezmoidata.json`. See `docs/chezmoi.md`.
 
-**MCP Servers**: Defined in `modules/home/ai/mcp.nix`. Types: `local-npx`, `local-nix`, `local-uvx`.
-Prefer `local-npx` for official TS servers. **SSH/Git**: FIDO2 Yubikey via `modules/home/ssh.nix`.
+**MCP Servers**: Defined in `modules/home/ai/mcp.nix`. Types: `remote`, `local-npx`, `local-nix`, `local-uvx`.
+Prefer `local-npx` for official TS servers. Obsidian integration via cyanheads/obsidian-mcp-server (CRUD)
+and obsidian-index (semantic search). **SSH/Git**: FIDO2 Yubikey via `modules/home/ssh.nix`.
 
 ## Serena Integration
 
