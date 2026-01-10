@@ -4,12 +4,12 @@ Need-to-know guide for this repo's SSH setup on macOS (nix-darwin) and NixOS.
 
 ## Overview
 
-| Component              | macOS (Current)             | NixOS (Current)             | Target (All Platforms)      |
-| ---------------------- | --------------------------- | --------------------------- | --------------------------- |
-| **Interactive SSH**    | Bitwarden SSH Agent         | sops-nix authorized_keys    | Bitwarden SSH Agent         |
-| **Automated builds**   | `~/.ssh/id_ed25519_builder` | `~/.ssh/id_ed25519_builder` | Same                        |
-| **Secrets encryption** | sops-nix (boot-time only)   | sops-nix (multiple uses)    | sops-nix (boot-time only)   |
-| **Server**             | sshd via nix-darwin         | sshd via NixOS              | Same                        |
+| Component              | macOS (Current)             | NixOS (Current)             | Target (All Platforms)    |
+| ---------------------- | --------------------------- | --------------------------- | ------------------------- |
+| **Interactive SSH**    | Bitwarden SSH Agent         | sops-nix authorized_keys    | Bitwarden SSH Agent       |
+| **Automated builds**   | `~/.ssh/id_ed25519_builder` | `~/.ssh/id_ed25519_builder` | Same                      |
+| **Secrets encryption** | sops-nix (boot-time only)   | sops-nix (multiple uses)    | sops-nix (boot-time only) |
+| **Server**             | sshd via nix-darwin         | sshd via NixOS              | Same                      |
 
 > **Note**: NixOS SSH is being migrated to Bitwarden SSH Agent. See GitHub issue for progress.
 
@@ -133,12 +133,14 @@ Key features:
 ### Current State
 
 **Darwin (macOS)**: No SSH secrets in sops-nix (uses Bitwarden SSH Agent directly)
+
 ```nix
 # modules/darwin/secrets.nix
 # Only declares harmonia/signing_key - no SSH secrets
 ```
 
 **NixOS**: SSH authorized keys managed via sops-nix (temporary)
+
 ```nix
 # modules/nixos/secrets.nix
 sops.secrets."ssh/authorized_key_secretive" = { mode = "0444"; };

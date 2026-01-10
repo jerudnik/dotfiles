@@ -81,6 +81,7 @@ chezmoi/                              # Source repo (linked to ~/.local/share/ch
 > **Note**: The `private_` prefix is a chezmoi convention that creates files/directories with restricted permissions (0700 for dirs, 0600 for files). This is used for macOS `~/Library/` paths which contain sensitive application data.
 
 **Path conventions:**
+
 - Claude Desktop: `private_Library/private_Application Support/Claude/` → `~/Library/Application Support/Claude/`
 - Cursor: `dot_cursor/` → `~/.cursor/`
 - The `private_` prefix ensures proper permissions and is stripped during apply.

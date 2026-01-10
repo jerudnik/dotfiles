@@ -272,3 +272,4 @@ Darwin and NixOS clients currently use different public keys:
 - Client config (Darwin): `hosts/common/darwin/default.nix`
 - Client config (NixOS): `hosts/common/nixos/default.nix`
 - Public key: `secrets/public-keys/harmonia.pub`
+```

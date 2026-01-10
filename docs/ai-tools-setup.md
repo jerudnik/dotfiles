@@ -133,7 +133,7 @@ MCP configurations use a "Computed Partial" approach:
 
 1. **Nix computes**: Server definitions, secret paths, and transformations live in `modules/home/ai/mcp.nix`
 2. **Bridge exports**: `modules/home/chezmoi-bridge.nix` exports computed configs to `~/.config/chezmoi/chezmoidata.json`
-3. **Chezmoi templates**: Templates in `chezmoi/dot_config/opencode/`, `chezmoi/dot_cursor/`, and `chezmoi/private_Library/.../Claude/` inject the pre-computed JSON
+3. **Chezmoi templates**: Templates in `chezmoi/dot_config/opencode/`, `chezmoi/dot_cursor/`, `chezmoi/dot_config/zed/`, and `chezmoi/private_Library/.../Claude/` inject the pre-computed JSON
 
 This keeps infrastructure logic in Nix while allowing rapid iteration on client-specific settings in chezmoi templates.
 

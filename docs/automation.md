@@ -181,9 +181,11 @@ For boot-time secrets that must be available before user login, sops-nix is stil
 ### Scope
 
 **Darwin (macOS)**: sops-nix is used for:
+
 - Harmonia cache signing key (boot-time requirement)
 
 **NixOS**: sops-nix is used for:
+
 - Harmonia cache signing key (boot-time requirement)
 - API keys: `opencode_zen`, `github_token`, `context7`, `exa`
 - SSH authorized keys: `authorized_key_secretive`, `authorized_key_builder`, `authorized_key_yubikey`
@@ -192,6 +194,7 @@ For boot-time secrets that must be available before user login, sops-nix is stil
 ### Target Architecture
 
 The goal is to migrate NixOS to match Darwin's approach:
+
 - API keys → Bitwarden + chezmoi (see `docs/ai-tools-setup.md`)
 - SSH keys → Bitwarden SSH Agent (see `docs/ssh.md`)
 - Atuin sync key → Bitwarden + chezmoi
