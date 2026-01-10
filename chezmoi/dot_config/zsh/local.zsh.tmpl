@@ -21,4 +21,24 @@ export CONTEXT7_API_KEY="{{ .value }}"
 export EXA_API_KEY="{{ .value }}"
 {{- end }}
 
+{{- with $apiKeys.anthropic }}
+export ANTHROPIC_API_KEY="{{ .value }}"
+{{- end }}
+
+{{- with $apiKeys.openai }}
+export OPENAI_API_KEY="{{ .value }}"
+{{- end }}
+
+{{- with $apiKeys.openrouter }}
+export OPENROUTER_API_KEY="{{ .value }}"
+{{- end }}
+
+{{- with $apiKeys.together }}
+export TOGETHER_API_KEY="{{ .value }}"
+{{- end }}
+
+{{- with $apiKeys.google }}
+export GOOGLE_API_KEY="{{ .value }}"
+{{- end }}
+
 # Add any host-specific aliases or functions below
