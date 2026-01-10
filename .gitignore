@@ -17,5 +17,8 @@ session-*.md
 # macOS
 .DS_Store
 
+# GitHub workflows (not used)
+.github/
+
 # NixOS hardware configuration (machine-specific)
 hardware-configuration.nix
