@@ -1,0 +1,191 @@
+{{- $data := include (joinPath .chezmoi.homeDir ".config/chezmoi/chezmoidata.json") | fromJson -}}
+{{- $apiKeys := bitwardenFields "item" "API Keys" -}}
+{
+  "hard_tabs": true,
+  "ui_font_family": "iA Writer Quattro V",
+  "buffer_font_family": "iA Writer Mono V",
+  "icon_theme": {
+    "mode": "system",
+    "light": "Zed (Default)",
+    "dark": "Zed (Default)"
+  },
+  "agent": {
+    "always_allow_tool_actions": true,
+    "default_model": {
+      "provider": "zed.dev",
+      "model": "claude-sonnet-4-5"
+    },
+    "play_sound_when_agent_done": true,
+    "profiles": {
+      "docs": {
+        "default_model": {
+          "provider": "OpenCode Zen",
+          "model": "glm-4.7-free"
+        },
+        "name": "Docs",
+        "tools": {
+          "thinking": true,
+          "read_file": true,
+          "open": true,
+          "list_directory": true,
+          "grep": true,
+          "find_path": true,
+          "fetch": true,
+          "edit_file": true,
+          "diagnostics": true
+        },
+        "enable_all_context_servers": false,
+        "context_servers": {
+          "serena": {
+            "tools": {
+              "write_memory": true,
+              "think_about_whether_you_are_done": true,
+              "think_about_task_adherence": true,
+              "think_about_collected_information": true,
+              "search_for_pattern": true,
+              "replace_symbol_body": true,
+              "replace_content": true,
+              "rename_symbol": true,
+              "read_memory": true,
+              "onboarding": true,
+              "list_memories": true,
+              "list_dir": true,
+              "insert_before_symbol": true,
+              "insert_after_symbol": true,
+              "initial_instructions": true,
+              "get_symbols_overview": true,
+              "get_current_config": true,
+              "find_symbol": true,
+              "find_referencing_symbols": true,
+              "find_file": true,
+              "edit_memory": true,
+              "delete_memory": true
+            }
+          },
+          "mcp-server-sequential-thinking": {
+            "tools": {
+              "sequentialthinking": true
+            }
+          },
+          "mcp-server-context7": {
+            "tools": {
+              "resolve-library-id": true,
+              "query-docs": true
+            }
+          }
+        }
+      }
+    },
+    "model_parameters": []
+  },
+  "agent_servers": {
+    "OpenCode": {
+      "type": "custom",
+      "command": "opencode",
+      "args": ["acp"]
+    }
+  },
+  "language_models": {
+    "openai_compatible": {
+      "OpenCode Zen": {
+        "api_url": "https://opencode.ai/zen/v1/chat/completions",
+        "available_models": [
+          {
+            "name": "glm-4.7-free",
+            "max_tokens": 200000,
+            "max_output_tokens": 32000,
+            "max_completion_tokens": 200000,
+            "capabilities": {
+              "tools": true,
+              "images": false,
+              "parallel_tool_calls": false,
+              "prompt_cache_key": false
+            }
+          },
+          {
+            "name": "minimax-m2.1-free",
+            "max_tokens": 200000,
+            "max_output_tokens": 32000,
+            "max_completion_tokens": 200000,
+            "capabilities": {
+              "tools": true,
+              "images": false,
+              "parallel_tool_calls": false,
+              "prompt_cache_key": false
+            }
+          },
+          {
+            "name": "gpt-5.1-codex-max",
+            "max_tokens": 200000,
+            "max_output_tokens": 32000,
+            "max_completion_tokens": 200000,
+            "capabilities": {
+              "tools": true,
+              "images": false,
+              "parallel_tool_calls": false,
+              "prompt_cache_key": false
+            }
+          }
+        ]
+      }
+    }
+  },
+  "features": {
+    "edit_prediction_provider": "copilot"
+  },
+  "base_keymap": "VSCode",
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+  "ui_font_size": 16,
+  "buffer_font_size": 17.0,
+  "theme": {
+    "mode": "system",
+    "light": "Dawnfox - blurred",
+    "dark": "Nordfox - blurred"
+  },
+  "lsp": {
+    "nil": {
+      "settings": {
+        "nil": {
+          "nix": {
+            "flake": {
+              "autoArchive": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "context_servers": {
+{{- $servers := $data.cursor_config.mcpServers -}}
+{{- $serverList := keys $servers | sortAlpha -}}
+{{- $total := len $serverList -}}
+{{- range $i, $name := $serverList }}
+    "{{ $name }}": {
+      "command": {{ (index $servers $name).command | toJson }},
+      "args": {{ (index $servers $name).args | toJson }}
+{{- if eq $name "github" }},
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "{{- with $apiKeys.github_token }}{{ .value }}{{ end -}}"
+      }
+{{- else if eq $name "exa" }},
+      "env": {
+        "EXA_API_KEY": "{{- with $apiKeys.exa }}{{ .value }}{{ end -}}"
+      }
+{{- else }}
+{{- $srv := index $servers $name }}
+{{- if hasKey $srv "env" }},
+      "env": {{ $srv.env | toJson }}
+{{- end }}
+{{- end }}
+    }{{ if lt (add $i 1) $total }},{{ end }}
+{{- end }},
+    "container-use-mcp": {
+      "settings": {
+        "cu_path": "/opt/homebrew/bin/cu"
+      }
+    }
+  }
+}
