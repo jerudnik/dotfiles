@@ -7,6 +7,7 @@
 The AI module SHALL provide a dedicated `agents.nix` module for all agent definitions.
 
 #### Scenario: Agent module exists
+
 - **GIVEN** the AI module directory at `modules/home/ai/`
 - **WHEN** the module structure is evaluated
 - **THEN** `agents.nix` SHALL exist
@@ -14,6 +15,7 @@ The AI module SHALL provide a dedicated `agents.nix` module for all agent defini
 - **AND** it SHALL define `options.services.agents.definitions`
 
 #### Scenario: Agent definitions are accessible
+
 - **GIVEN** agents defined in `agents.nix`
 - **WHEN** another module needs agent data
 - **THEN** it SHALL access agents via `config.services.agents.definitions`
@@ -23,6 +25,7 @@ The AI module SHALL provide a dedicated `agents.nix` module for all agent defini
 Client-specific configurations SHALL be isolated in a `clients/` subdirectory.
 
 #### Scenario: OpenCode client in subdirectory
+
 - **GIVEN** OpenCode client configuration
 - **WHEN** the module structure is evaluated
 - **THEN** OpenCode config SHALL be at `modules/home/ai/clients/opencode.nix`
@@ -30,6 +33,7 @@ Client-specific configurations SHALL be isolated in a `clients/` subdirectory.
 - **AND** it SHALL consume agents via `config.services.agents.definitions`
 
 #### Scenario: OpenCode consumes shared definitions
+
 - **GIVEN** `clients/opencode.nix` requires agents, skills, and MCP servers
 - **WHEN** the module is evaluated
 - **THEN** it SHALL consume definitions via:
@@ -42,6 +46,7 @@ Client-specific configurations SHALL be isolated in a `clients/` subdirectory.
 The `default.nix` SHALL import all AI submodules with the new structure.
 
 #### Scenario: Module import structure
+
 - **GIVEN** the AI module directory
 - **WHEN** `default.nix` is evaluated
 - **THEN** it SHALL import:
@@ -50,22 +55,24 @@ The `default.nix` SHALL import all AI submodules with the new structure.
   - `./mcp.nix`
   - `./environment.nix`
   - `./clients/opencode.nix`
-- **AND** it SHALL NOT import `./claude-desktop.nix`
+- **AND** it SHALL import `./claude-desktop.nix`
 - **AND** it SHALL NOT import `./opencode.nix` from the root level
 
-## REMOVED Requirements
+## MODIFIED Requirements
 
-### Requirement: Claude Desktop Configuration
+### Requirement: Claude Desktop Configuration Retained
 
-The `claude-desktop.nix` module SHALL be removed.
+The `claude-desktop.nix` module SHALL be retained with access to all MCP servers.
 
-**Reason:** Claude Desktop client not in active use; simplifies module structure.
+**Reason:** Claude Desktop receives all enabled MCP servers via chezmoi bridge; user toggles servers in-app.
 
-#### Scenario: Module deletion
+#### Scenario: Module retained
+
 - **GIVEN** the file `modules/home/ai/claude-desktop.nix`
 - **WHEN** the restructure is complete
-- **THEN** the file SHALL NOT exist
-- **AND** no import reference SHALL remain in `default.nix`
+- **THEN** the file SHALL exist with preferences configuration
+- **AND** `default.nix` SHALL import `./claude-desktop.nix`
+- **AND** all enabled MCP servers SHALL be available via `claudeDesktopConfig`
 
 ### Requirement: Inline Agent Definitions in opencode.nix
 
@@ -74,6 +81,7 @@ Agent definitions SHALL NOT be embedded in client configuration.
 **Reason:** Violates separation of concerns; makes agents harder to share across clients.
 
 #### Scenario: Agents extracted
+
 - **GIVEN** the restructured `clients/opencode.nix`
 - **WHEN** the file is evaluated
 - **THEN** it SHALL NOT contain agent definition literals

@@ -121,7 +121,6 @@ let
       env = {
         MEMORY_FILE_PATH = "${config.home.homeDirectory}/Utility/mcp-memory/memory.jsonl";
       };
-      enabled = false;
       description = "Persistent memory and knowledge graph";
     };
 
@@ -196,6 +195,69 @@ let
         "editing"
       ];
       description = "Semantic code retrieval and editing via LSP";
+    };
+
+    # --------------------------------------------------------
+    # Research MCP Servers
+    # --------------------------------------------------------
+
+    # Obsidian MCP Server - CRUD operations for research vault
+    # Uses Local REST API plugin in Obsidian
+    # API key from Bitwarden via chezmoi (per-host keys)
+    obsidian-mcp-server = {
+      type = "local";
+      command = "npx";
+      args = [
+        "-y"
+        "@cyanheads/obsidian-mcp-server"
+      ];
+      env = {
+        OBSIDIAN_API_KEY = "{env:OBSIDIAN_API_KEY}";
+        OBSIDIAN_BASE_URL = "http://localhost:27123";
+      };
+      description = "Obsidian vault CRUD operations via Local REST API";
+    };
+
+    # Obsidian Index - Semantic search across research notes
+    # Builds vector embeddings for conceptual discovery
+    obsidian-index = {
+      type = "local";
+      command = "uvx";
+      args = [
+        "obsidian-index"
+        "--vault"
+        "${config.home.homeDirectory}/Notes/obsidian/robinson"
+        "--database"
+        "${config.home.homeDirectory}/Notes/obsidian/robinson/.obsidian-index.db"
+        "--watch"
+      ];
+      description = "Semantic search across Obsidian vault via embeddings";
+    };
+
+    # Docling MCP - Convert PDFs and documents to structured data
+    # Note: nixpkgs package (python313Packages.docling-mcp) has broken dependency
+    # Using uvx until upstream fixes docling-parse
+    docling-mcp = {
+      type = "local";
+      command = "uvx";
+      args = [
+        "--from"
+        "docling-mcp"
+        "docling-mcp-server"
+      ];
+      description = "Convert PDFs and documents to structured JSON";
+    };
+
+    # Paper Search MCP - Academic literature search
+    # Searches arXiv, PubMed, bioRxiv, medRxiv
+    paper-search-mcp = {
+      type = "local";
+      command = "npx";
+      args = [
+        "-y"
+        "@openags/paper-search-mcp"
+      ];
+      description = "Academic literature search (arXiv, PubMed, bioRxiv, medRxiv)";
     };
   };
 

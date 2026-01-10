@@ -7,6 +7,7 @@
 The system SHALL provide a `r-search` subagent for literature discovery.
 
 #### Scenario: Agent definition
+
 - **GIVEN** the `r-search` agent definition in `agents.nix`
 - **WHEN** evaluated
 - **THEN** mode SHALL be `"subagent"`
@@ -15,6 +16,7 @@ The system SHALL provide a `r-search` subagent for literature discovery.
 - **AND** tools SHALL be `{ write = false; edit = false; bash = false; }`
 
 #### Scenario: Paper discovery workflow
+
 - **GIVEN** a user invokes `@r-search` with a research topic
 - **WHEN** the agent processes the request
 - **THEN** it SHALL check `/Users/jrudnik/Bibliographies/paperpile.bib` via grep BEFORE external search
@@ -22,6 +24,7 @@ The system SHALL provide a `r-search` subagent for literature discovery.
 - **AND** it SHALL store successful search strategies in memory MCP
 
 #### Scenario: Escalation guidance
+
 - **GIVEN** the agent prompt
 - **THEN** it SHALL indicate that users should escalate to `@r-assess` for deep paper evaluation
 
@@ -30,6 +33,7 @@ The system SHALL provide a `r-search` subagent for literature discovery.
 The system SHALL provide a `r-lint` subagent for mechanical text corrections.
 
 #### Scenario: Agent definition
+
 - **GIVEN** the `r-lint` agent definition in `agents.nix`
 - **WHEN** evaluated
 - **THEN** mode SHALL be `"subagent"`
@@ -38,6 +42,7 @@ The system SHALL provide a `r-lint` subagent for mechanical text corrections.
 - **AND** tools SHALL be `{ write = true; edit = true; bash = false; }`
 
 #### Scenario: Vale integration
+
 - **GIVEN** a user invokes `@r-lint` on a markdown file
 - **WHEN** the agent processes the request
 - **THEN** the prompt SHALL instruct it to run `vale <file>` and interpret output
@@ -49,6 +54,7 @@ The system SHALL provide a `r-lint` subagent for mechanical text corrections.
 The system SHALL provide a `r-assess` subagent for critical review of arguments.
 
 #### Scenario: Agent definition
+
 - **GIVEN** the `r-assess` agent definition in `agents.nix`
 - **WHEN** evaluated
 - **THEN** mode SHALL be `"subagent"`
@@ -57,10 +63,12 @@ The system SHALL provide a `r-assess` subagent for critical review of arguments.
 - **AND** tools SHALL be `{ write = false; edit = false; bash = false; }`
 
 #### Scenario: Skill loading requirement
+
 - **GIVEN** the agent prompt
 - **THEN** it SHALL instruct the agent to load skill `research-global` first before responding
 
 #### Scenario: Critical review workflow
+
 - **GIVEN** a user invokes `@r-assess` with text to evaluate
 - **WHEN** the agent processes the request
 - **THEN** it SHALL apply theoretical lenses (Verbeek, Ihde, Mol, Thévenot, Abend)
@@ -72,6 +80,7 @@ The system SHALL provide a `r-assess` subagent for critical review of arguments.
 The system SHALL provide a `r-edit` subagent for note refactoring and organization.
 
 #### Scenario: Agent definition
+
 - **GIVEN** the `r-edit` agent definition in `agents.nix`
 - **WHEN** evaluated
 - **THEN** mode SHALL be `"subagent"`
@@ -80,6 +89,7 @@ The system SHALL provide a `r-edit` subagent for note refactoring and organizati
 - **AND** tools SHALL be `{ write = true; edit = true; bash = false; }`
 
 #### Scenario: Obsidian editing workflow
+
 - **GIVEN** a user invokes `@r-edit` for note operations
 - **WHEN** the agent processes the request
 - **THEN** it SHALL follow Obsidian conventions (wikilinks, frontmatter)
@@ -92,6 +102,7 @@ The system SHALL provide a `r-edit` subagent for note refactoring and organizati
 The system SHALL provide a `r-think` subagent for conceptual brainstorming.
 
 #### Scenario: Agent definition
+
 - **GIVEN** the `r-think` agent definition in `agents.nix`
 - **WHEN** evaluated
 - **THEN** mode SHALL be `"subagent"`
@@ -100,10 +111,12 @@ The system SHALL provide a `r-think` subagent for conceptual brainstorming.
 - **AND** tools SHALL be `{ write = false; edit = false; bash = false; }`
 
 #### Scenario: Skill loading requirement
+
 - **GIVEN** the agent prompt
 - **THEN** it SHALL instruct the agent to load skill `research-global` first before responding
 
 #### Scenario: Conceptual exploration workflow
+
 - **GIVEN** a user invokes `@r-think` for theoretical exploration
 - **WHEN** the agent processes the request
 - **THEN** it SHALL NOT make file edits unless explicitly requested
@@ -115,6 +128,7 @@ The system SHALL provide a `r-think` subagent for conceptual brainstorming.
 The system SHALL provide a `r-meta` subagent for project overview and context recovery.
 
 #### Scenario: Agent definition
+
 - **GIVEN** the `r-meta` agent definition in `agents.nix`
 - **WHEN** evaluated
 - **THEN** mode SHALL be `"subagent"`
@@ -123,10 +137,12 @@ The system SHALL provide a `r-meta` subagent for project overview and context re
 - **AND** tools SHALL be `{ write = false; edit = false; bash = false; }`
 
 #### Scenario: Skill loading requirement
+
 - **GIVEN** the agent prompt
 - **THEN** it SHALL instruct the agent to load skill `research-global` first before responding
 
 #### Scenario: Project status workflow
+
 - **GIVEN** a user invokes `@r-meta` for project context
 - **WHEN** the agent processes the request
 - **THEN** it SHALL cross-reference notes and memory for project state

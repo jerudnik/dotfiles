@@ -3,6 +3,7 @@
 ## Context
 
 The AI module at `modules/home/ai/` has grown organically, mixing concerns:
+
 - `opencode.nix` contains both agent definitions and client configuration
 - `claude-desktop.nix` is unused but still imported
 - No clear separation between coding and research contexts
@@ -12,6 +13,7 @@ This change restructures the module while adding research capabilities.
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Clear separation of concerns (agents, skills, mcp, clients)
 - Research agents isolated with `r-` prefix convention
 - Cost-optimized model assignments (free -> mid -> premium)
@@ -19,6 +21,7 @@ This change restructures the module while adding research capabilities.
 - Prompt instruction pattern for skill loading
 
 **Non-Goals:**
+
 - Cross-client skill synchronization (future work)
 - Multi-vault Obsidian strategy (noted for future)
 - Per-agent MCP filtering (not supported by OpenCode)
@@ -37,19 +40,19 @@ modules/home/ai/
 ├── mcp.nix             # MCP server definitions (incl. Obsidian servers)
 ├── clients/
 │   ├── opencode.nix    # OpenCode client config (consumes agents, skills, mcp)
-│   └── claude-desktop.nix  # Claude Desktop minimal MCP config
+│   └── claude-desktop.nix  # Claude Desktop preferences + all MCP servers
 ├── environment.nix     # Environment variables
 └── default.nix         # Imports, enables services
 ```
 
-**Rationale:** 
+**Rationale:**
+
 - Agents are the primary unit of work; deserve dedicated module
 - Skills are cross-cutting; one module with sections
 - MCP is already well-structured; keep as-is
 - Clients consume agents/skills/mcp; subdirectory clarifies relationship
-- Removes unused claude-desktop.nix
 
-**Alternative considered:** Keep flat structure, add `research.nix` -> rejected because 
+**Alternative considered:** Keep flat structure, add `research.nix` -> rejected because
 it would create unclear boundaries between `opencode.nix` and `research.nix`.
 
 ### D2: Agent Export Pattern
@@ -73,7 +76,8 @@ options.services.agents = {
 
 **Decision:** Agents use prompt instruction "Load skill `research-global` first before responding."
 
-**Rationale:** 
+**Rationale:**
+
 - OpenCode skill tool is reliable
 - Avoids content duplication across agent prompts
 - Skills can be updated independently of agent prompts
@@ -83,13 +87,14 @@ options.services.agents = {
 
 **Decision:** Cost-optimized tiers based on task complexity
 
-| Tier    | Model                     | Use Case                | Agents            |
-| ------- | ------------------------- | ----------------------- | ----------------- |
+| Tier    | Model                       | Use Case                | Agents            |
+| ------- | --------------------------- | ----------------------- | ----------------- |
 | Free    | `opencode/glm-4.7-free`     | High-volume, mechanical | r-search, r-lint  |
 | Mid     | `google/claude-sonnet-4-5`  | Reliable tool use       | r-edit, r-meta    |
 | Premium | `anthropic/claude-opus-4-5` | Deep reasoning          | r-assess, r-think |
 
-**Rationale:** 
+**Rationale:**
+
 - Literature search is high-volume; use free tier
 - Linting is mechanical; use free tier
 - Critical assessment needs deep reasoning; premium
@@ -97,25 +102,18 @@ options.services.agents = {
 - File editing needs reliable tool use; mid tier
 - Project synthesis needs competence without deep reasoning; mid tier
 
-### D5: Retain claude-desktop.nix with Minimal Config
+### D5: Retain claude-desktop.nix with All MCP Servers
 
-**Decision:** Keep `claude-desktop.nix` with a reduced MCP server set for quick tasks
+**Decision:** Keep `claude-desktop.nix` with access to all enabled MCP servers
 
-**Minimal MCP set:**
-- `time` - Timezone utilities
-- `sequential-thinking` - Structured reasoning
-- `github` - Repository access
-- `context7` - Documentation lookup
-- `obsidian-mcp-server` - Vault CRUD operations
-- `obsidian-index` - Semantic vault search
-
-**Rationale:** Claude Desktop remains useful for quick tasks while research agents focus on specialized workflows in OpenCode. Eventual deprecation planned but not immediate priority.
+**Rationale:** Claude Desktop receives all MCP servers via chezmoi bridge (`claudeDesktopConfig`). User toggles individual servers in-app as needed. No filtering required at the Nix level.
 
 ### D6: Static AGENTS.md for Obsidian
 
 **Decision:** Use static file, not chezmoi template
 
 **Rationale:**
+
 - Agent names are fixed (r-search, r-lint, etc.)
 - Theoretical commitments are stable
 - No computed values from Nix needed
@@ -125,18 +123,20 @@ options.services.agents = {
 
 **Decision:** Use dual Obsidian MCP servers for complementary capabilities
 
-| Server              | Type      | Purpose                            |
-| ------------------- | --------- | ---------------------------------- |
-| obsidian-mcp-server | local-npx | CRUD, search, frontmatter/tags     |
-| obsidian-index      | local-uvx | Semantic search via embeddings     |
+| Server              | Type      | Purpose                        |
+| ------------------- | --------- | ------------------------------ |
+| obsidian-mcp-server | local-npx | CRUD, search, frontmatter/tags |
+| obsidian-index      | local-uvx | Semantic search via embeddings |
 
 **Configuration:**
+
 - Vault path: Derived from `config.home.homeDirectory` + `/Notes/obsidian/robinson`
 - API key: Bitwarden → chezmoi injection (per-host keys in "Obsidian Keys" secret)
 - Database: `${vaultPath}/.obsidian-index.db` (in vault directory)
-- Both servers available in Claude Desktop and OpenCode
+- Both servers available in Claude Desktop and OpenCode (all MCP servers exposed to both)
 
 **Rationale:**
+
 - obsidian-mcp-server provides reliable CRUD via Local REST API plugin
 - obsidian-index adds semantic search for conceptual discovery
 - Complementary capabilities without overlap
@@ -167,13 +167,13 @@ config.services.agents      config.services.skills      config.services.mcp
 
 ## Risks / Trade-offs
 
-| Risk                          | Mitigation                                                      |
-| ----------------------------- | --------------------------------------------------------------- |
-| Breaking import paths         | Update `default.nix` imports; test with `nix flake check`         |
-| Skill loading compliance      | Research agents have `bash=false`; can't bypass instructions      |
-| Memory MCP data location      | Existing config uses `~/Utility/mcp-memory/memory.jsonl`; keep    |
-| Agent prompt verbosity        | Keep prompts focused; detailed guidance in skills                |
-| Model availability            | All models verified in existing opencode.json.tmpl               |
+| Risk                     | Mitigation                                                     |
+| ------------------------ | -------------------------------------------------------------- |
+| Breaking import paths    | Update `default.nix` imports; test with `nix flake check`      |
+| Skill loading compliance | Research agents have `bash=false`; can't bypass instructions   |
+| Memory MCP data location | Existing config uses `~/Utility/mcp-memory/memory.jsonl`; keep |
+| Agent prompt verbosity   | Keep prompts focused; detailed guidance in skills              |
+| Model availability       | All models verified in existing opencode.json.tmpl             |
 
 ## Migration Plan
 
@@ -182,7 +182,7 @@ config.services.agents      config.services.skills      config.services.mcp
 3. Update `opencode.nix` to consume `config.services.agents`
 4. Add research skills to `skills.nix`
 5. Add MCP servers to `mcp.nix`; enable memory
-6. Update `default.nix` imports; remove claude-desktop.nix
+6. Update `default.nix` imports; retain claude-desktop.nix with all MCP servers
 7. Create `chezmoi/dot_Notes/obsidian/robinson/AGENTS.md`
 8. Validate with `nix flake check`
 9. Deploy with `apply` then `chezmoi apply`
@@ -194,6 +194,7 @@ None - all clarified during proposal phase.
 ## Future Considerations
 
 Documented for later implementation:
+
 - Conversation review feature (`/review` command)
 - Dual-model pipeline for literature (cheap discovery -> quality evaluation)
 - Zotero MCP if switching from Paperpile

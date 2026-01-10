@@ -47,17 +47,6 @@
       # Initialize starship prompt
       eval "$(starship init zsh)"
 
-      # Initialize atuin (shell history)
-      # Start daemon if not running, then init shell integration
-      if command -v atuin &> /dev/null; then
-        export ATUIN_LOG=error
-        if ! pgrep -x "atuin" > /dev/null 2>&1; then
-          atuin daemon &> /dev/null &
-          disown
-        fi
-        eval "$(atuin init zsh --disable-up-arrow)"
-      fi
-
       # Initialize zoxide (smarter cd)
       eval "$(zoxide init zsh)"
 

@@ -1,12 +1,12 @@
 # Project: Nix Dotfiles
 
-A Nix-based configuration management system for macOS (nix-darwin) and Linux (NixOS) 
+A Nix-based configuration management system for macOS (nix-darwin) and Linux (NixOS)
 with home-manager, supporting AI-assisted development and research workflows.
 
 ## Purpose
 
-Declarative, reproducible system configuration across Apple Silicon Macs and x86_64 
-Linux machines. Manages packages, services, shell environment, AI tooling, and 
+Declarative, reproducible system configuration across Apple Silicon Macs and x86_64
+Linux machines. Manages packages, services, shell environment, AI tooling, and
 application configuration through Nix flakes with secrets management via sops-nix.
 
 ## Tech Stack
@@ -24,6 +24,7 @@ application configuration through Nix flakes with secrets management via sops-ni
 ## Architecture
 
 ### Directory Structure
+
 ```
 ├── flake.nix / flake.lock     # Inputs and outputs
 ├── hosts/                      # Per-host configs (darwin/nixos)
@@ -43,6 +44,7 @@ application configuration through Nix flakes with secrets management via sops-ni
 ### Module Patterns
 
 **Service module signature:**
+
 ```nix
 { config, pkgs, lib, ... }:
 with lib;
@@ -54,6 +56,7 @@ in {
 ```
 
 **Export conventions:**
+
 - Options: `config.services.<name>.<option>`
 - Read-only computed values: `config.services.<name>.<computed>` with `readOnly = true`
 - Transformers: `to{Format}Format` naming (e.g., `toOpenCodeFormat`)
@@ -62,6 +65,7 @@ in {
 ### Chezmoi Bridge Pattern
 
 **Data Flow:**
+
 ```
 Nix modules compute values
         ↓
@@ -73,6 +77,7 @@ chezmoi apply generates final dotfiles
 ```
 
 **Exported Data:**
+
 - `stylix`: Base16 colors (`base00` through `base0F`)
 - `font`: Monospace font name and size
 - `hostname`, `username`, `isDarwin`, `isLinux`: Host metadata
@@ -81,6 +86,7 @@ chezmoi apply generates final dotfiles
 - `tools`: Nix store paths for git, nix, etc.
 
 **Template Patterns:**
+
 1. **Data Loading**: `{{ $data := include (joinPath .chezmoi.homeDir ".config/chezmoi/chezmoidata.json") | fromJson }}`
 2. **JSON Injection**: `{{ $data.opencode_mcp_config | toPrettyJson }}`
 3. **Value Access**: `{{ $data.stylix.base00 }}`
@@ -102,6 +108,7 @@ chezmoi apply generates final dotfiles
 ## Validation
 
 ### Nix Validation
+
 ```bash
 nix flake check              # Validate all configurations
 nix fmt                      # Format code
@@ -111,6 +118,7 @@ nixos-rebuild dry-build --flake . # Dry-run NixOS
 ```
 
 ### Chezmoi Validation
+
 ```bash
 # Template validation (test rendering)
 chezmoi execute-template --file chezmoi/dot_config/opencode/opencode.json.tmpl
@@ -127,6 +135,7 @@ jq -e '.stylix.base00' ~/.config/chezmoi/chezmoidata.json # Verify expected fiel
 ```
 
 ### Full Validation Workflow
+
 ```bash
 nix flake check                                    # 1. Validate Nix config
 apply                                              # 2. Rebuild system + chezmoidata.json
@@ -150,38 +159,45 @@ No test suite — validation is via `nix flake check`, successful `apply`, and `
 ## AI Module (`modules/home/ai/`)
 
 ### Current Structure
-| File               | Purpose                                | Exports                                                          |
-| ------------------ | -------------------------------------- | ---------------------------------------------------------------- |
-| `default.nix`        | Orchestrates imports, enables services | -                                                                |
-| `opencode.nix`       | OpenCode client config + agents        | - (consumed by chezmoi-bridge)                                   |
+
+| File                 | Purpose                                | Exports                                                            |
+| -------------------- | -------------------------------------- | ------------------------------------------------------------------ |
+| `default.nix`        | Orchestrates imports, enables services | -                                                                  |
+| `opencode.nix`       | OpenCode client config + agents        | - (consumed by chezmoi-bridge)                                     |
 | `skills.nix`         | Skill definitions                      | `services.skills.{definitions,opencode}`                           |
 | `mcp.nix`            | MCP server definitions                 | `services.mcp.{servers,opencode,claudeDesktopConfig,cursorConfig}` |
-| `environment.nix`    | Shell environment variables            | -                                                                |
+| `environment.nix`    | Shell environment variables            | -                                                                  |
 | `claude-desktop.nix` | Claude Desktop preferences             | `services.claudeDesktop.preferences`                               |
 
 ### MCP Server Types
+
 - `remote`: SSE endpoints (context7)
 - `local-nix`: Nix packages (github-mcp-server)
-- `local-npx`: TypeScript via npx (filesystem, sequential-thinking, exa, obsidian-mcp-server)
-- `local-uvx`: Python via uvx (mcp-nixos, serena, obsidian-index)
+- `local-npx`: TypeScript via npx (filesystem, sequential-thinking, exa)
+- `local-uvx`: Python via uvx (mcp-nixos, serena)
 
 **Preference order:** local-npx → local-nix → local-uvx
 
-### Obsidian Integration
-Two complementary MCP servers for research notes:
-- **obsidian-mcp-server** (`local-npx`): CRUD operations, search, frontmatter/tags via Local REST API
-- **obsidian-index** (`local-uvx`): Semantic search via embeddings for conceptual discovery
+### Obsidian Integration (Planned)
 
-Vault path derived from `config.home.homeDirectory` + `/Notes/obsidian/robinson`.
-API key injected via Bitwarden → chezmoi (per-host keys in "Obsidian Keys" secret).
+_See `openspec/changes/add-research-agents/` for implementation proposal._
+
+Research notes vault at `~/Notes/obsidian/robinson/`. Planned MCP servers:
+
+- **obsidian-mcp-server**: CRUD operations via Local REST API
+- **obsidian-index**: Semantic search via embeddings
+
+API key stored in Bitwarden ("Obsidian Keys" secret with per-host fields).
 
 ### Skills
+
 Generated to `~/.config/opencode/skill/<name>/SKILL.md` with YAML frontmatter.
 Loaded on-demand via OpenCode's `skill` tool.
 
 ## Constraints
 
 ### Always
+
 - Run `nix flake check` before committing
 - Run `nix fmt` to format changes
 - Update `modules/*/default.nix` imports when adding modules
@@ -189,12 +205,14 @@ Loaded on-demand via OpenCode's `skill` tool.
 - Validate chezmoi templates after Nix changes
 
 ### Ask First
+
 - Adding flake inputs
 - Modifying `secrets/secrets.yaml`
 - Changing `homebrew.onActivation` settings
 - Modifying `system.stateVersion`
 
 ### Never
+
 - Edit `flake.lock` manually (use `nix flake update`)
 - Commit unencrypted secrets
 - Remove module imports without checking references
@@ -203,11 +221,13 @@ Loaded on-demand via OpenCode's `skill` tool.
 ## Domain Context
 
 ### Research Context
-Doctoral research in HCI/STS examining AI-enabled care technologies. Research 
-notes in `~/Notes/obsidian/robinson/` (Obsidian vault). Planned: research-focused 
+
+Doctoral research in HCI/STS examining AI-enabled care technologies. Research
+notes in `~/Notes/obsidian/robinson/` (Obsidian vault). Planned: research-focused
 agents and skills with theoretical commitments for academic writing.
 
 ### Secret Management
+
 ```
 sops-nix (Yubikey) → /run/secrets/... (system secrets)
 Bitwarden → chezmoi templates → env vars (API keys)

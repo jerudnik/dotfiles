@@ -10,7 +10,8 @@
 {
   imports = [
     ./mcp.nix
-    ./opencode.nix
+    ./agents.nix
+    ./clients/opencode.nix
     ./environment.nix
     ./claude-desktop.nix
     ./skills.nix
@@ -19,6 +20,9 @@
   # Enable unified MCP configuration
   services.mcp.enable = true;
   services.mcp.enableClaudeDesktop = true;
+
+  # Enable unified Agents configuration
+  services.agents.enable = true;
 
   # Enable unified Skills configuration
   services.skills.enable = true;

@@ -2,27 +2,28 @@
 
 ## Why
 
-Doctoral research in HCI/STS requires specialized AI assistance for literature discovery, 
-critical assessment, and conceptual brainstorming. Current AI module infrastructure 
-supports coding workflows but lacks research-focused agents with appropriate model 
+Doctoral research in HCI/STS requires specialized AI assistance for literature discovery,
+critical assessment, and conceptual brainstorming. Current AI module infrastructure
+supports coding workflows but lacks research-focused agents with appropriate model
 tiers, theoretical commitments, and tool constraints.
 
-Additionally, the current `modules/home/ai/` structure mixes concerns (agents embedded 
-in client config) and includes unused components (claude-desktop.nix). A restructure 
+Additionally, the current `modules/home/ai/` structure mixes concerns (agents embedded
+in client config) and includes unused components (claude-desktop.nix). A restructure
 will provide cleaner separation and easier extensibility.
 
 ## What Changes
 
 ### Module Restructure (BREAKING)
+
 - Extract agent definitions from `opencode.nix` into dedicated `agents.nix`
 - Move `opencode.nix` to `clients/opencode.nix` (client-specific config)
-- Retain `claude-desktop.nix` with minimal MCP configuration (see below)
+- Retain `claude-desktop.nix` with all MCP servers via chezmoi bridge
 - Update `default.nix` imports for new structure
 
 ### Research Agents (6 new subagents with `r-` prefix)
 
-| Agent    | Purpose                    | Model                     | Tier    | Tools                                     |
-| -------- | -------------------------- | ------------------------- | ------- | ----------------------------------------- |
+| Agent    | Purpose                    | Model                       | Tier    | Tools                                     |
+| -------- | -------------------------- | --------------------------- | ------- | ----------------------------------------- |
 | r-search | Literature discovery       | `opencode/glm-4.7-free`     | Free    | `{ write=false; edit=false; bash=false }` |
 | r-lint   | Citation/grammar fixes     | `opencode/glm-4.7-free`     | Free    | `{ write=true; edit=true; bash=false }`   |
 | r-assess | Critical review            | `anthropic/claude-opus-4-5` | Premium | `{ write=false; edit=false; bash=false }` |
@@ -32,12 +33,12 @@ will provide cleaner separation and easier extensibility.
 
 ### Research Skills (4 new skills)
 
-| Skill            | Purpose                                | Word Limit |
-| ---------------- | -------------------------------------- | ---------- |
-| research-global  | Terminology + theoretical commitments  | ~250       |
-| literature-search| Multi-source paper discovery strategy  | ~150       |
-| critical-review  | Assessment framework                   | ~150       |
-| editing-style    | Obsidian/markdown conventions          | ~150       |
+| Skill             | Purpose                               | Word Limit |
+| ----------------- | ------------------------------------- | ---------- |
+| research-global   | Terminology + theoretical commitments | ~250       |
+| literature-search | Multi-source paper discovery strategy | ~150       |
+| critical-review   | Assessment framework                  | ~150       |
+| editing-style     | Obsidian/markdown conventions         | ~150       |
 
 ### MCP Servers
 
@@ -49,26 +50,19 @@ will provide cleaner separation and easier extensibility.
 | obsidian-mcp-server | ADD    | local-npx | npx     | Vault CRUD via Local REST API   |
 | obsidian-index      | ADD    | local-uvx | uvx     | Semantic search via embeddings  |
 
-### Claude Desktop Minimal Configuration
+### Claude Desktop Configuration
 
-Retain `claude-desktop.nix` with a minimal MCP server set for quick tasks:
-- `time` - Timezone utilities
-- `sequential-thinking` - Structured reasoning
-- `github` - Repository access
-- `context7` - Documentation lookup
-- `obsidian-mcp-server` - Vault CRUD operations
-- `obsidian-index` - Semantic vault search
-
-This provides basic functionality while research agents focus on specialized workflows in OpenCode.
+Retain `claude-desktop.nix` with access to all enabled MCP servers. User toggles individual servers in-app as needed. No Nix-level filtering required.
 
 ### Obsidian Integration
+
 - ADD `chezmoi/dot_Notes/obsidian/robinson/AGENTS.md` (static vault context file)
 
 ## Impact
 
 - **Affected modules:** `modules/home/ai/*` (full restructure)
 - **Affected configs:** `~/.config/opencode/opencode.json`, chezmoidata.json
-- **Breaking:** Import paths change; `claude-desktop.nix` config simplified
+- **Breaking:** Import paths change; `claude-desktop.nix` retained with all MCP servers
 - **Cost model:** 2 free + 2 mid + 2 premium tier agents
 
 ## Success Criteria
@@ -78,7 +72,7 @@ This provides basic functionality while research agents focus on specialized wor
 - [ ] 4 research skills loadable via skill tool
 - [ ] docling-mcp, paper-search-mcp active; memory enabled
 - [ ] AGENTS.md deployed to Obsidian vault via chezmoi
-- [ ] Claude Desktop minimal config working (6 MCP servers)
+- [ ] Claude Desktop receives all enabled MCP servers via chezmoi bridge
 - [ ] Obsidian MCP servers (obsidian-mcp-server, obsidian-index) active in both clients
 - [ ] Existing coding agents/skills/MCP unaffected
 

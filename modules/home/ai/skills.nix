@@ -554,6 +554,178 @@ let
         Mode definition: `~/.serena/modes/nix-focused.yml`
       '';
     };
+
+    # --------------------------------------------------------
+    # Research Skills
+    # --------------------------------------------------------
+
+    research-global = {
+      name = "research-global";
+      description = "Meta-level research workflow guidance";
+      tags = [
+        "research"
+        "workflow"
+        "coordination"
+      ];
+      content = ''
+        # Research Workflow Patterns
+
+        ## Agent Delegation
+        Use specialist agents for their strengths:
+        - **r-search**: Literature discovery, bibliography building
+        - **r-lint**: Style checking, citation formatting
+        - **r-assess**: Critical evaluation, methodology review
+        - **r-edit**: Prose polishing, clarity improvements
+        - **r-think**: Deep synthesis, argument development
+
+        ## Workflow Phases
+        1. **Discovery**: Use r-search to find relevant literature
+        2. **Organization**: Store findings in Obsidian vault
+        3. **Analysis**: Use r-assess for critical evaluation
+        4. **Synthesis**: Use r-think to develop arguments
+        5. **Writing**: Use r-edit for prose quality
+        6. **Review**: Use r-lint for final checks
+
+        ## Tool Integration
+        - **paper-search-mcp**: arXiv, PubMed, bioRxiv, medRxiv
+        - **obsidian-mcp-server**: Vault CRUD operations
+        - **obsidian-index**: Semantic search across notes
+        - **docling-mcp**: PDF to structured text conversion
+
+        ## Best Practices
+        - Start broad, then narrow focus
+        - Document findings as you go
+        - Cross-reference between sources
+        - Build connections in your vault
+      '';
+    };
+
+    literature-search = {
+      name = "literature-search";
+      description = "Academic literature search patterns";
+      tags = [
+        "research"
+        "literature"
+        "search"
+      ];
+      content = ''
+        # Literature Search Patterns
+
+        ## Search Strategy
+        1. **Identify key terms**: Extract core concepts from research question
+        2. **Expand vocabulary**: Add synonyms, related terms, field-specific jargon
+        3. **Combine strategically**: Use AND/OR to balance precision/recall
+
+        ## Database Selection
+        | Database | Best For |
+        |----------|----------|
+        | arXiv | CS, physics, math preprints |
+        | PubMed | Biomedical, life sciences |
+        | bioRxiv | Biology preprints |
+        | medRxiv | Health sciences preprints |
+
+        ## Search Tools
+        Use paper-search-mcp tools:
+        - `search_arxiv` - Computer science, physics
+        - `search_pubmed` - Medical literature
+        - `search_biorxiv` - Biology preprints
+        - `search_medrxiv` - Health preprints
+
+        ## Citation Tracking
+        - Follow key papers forward (who cited this?)
+        - Follow references backward (what did this cite?)
+        - Identify review papers for field overview
+      '';
+    };
+
+    critical-review = {
+      name = "critical-review";
+      description = "Framework for critical assessment of research";
+      tags = [
+        "research"
+        "critical"
+        "assessment"
+      ];
+      content = ''
+        # Critical Review Framework
+
+        ## Argument Assessment
+        - **Claim clarity**: Is the main thesis clearly stated?
+        - **Evidence strength**: Do claims have adequate support?
+        - **Logic validity**: Does the reasoning follow?
+        - **Scope appropriateness**: Are conclusions matched to evidence?
+
+        ## Methodology Evaluation
+        - **Design fit**: Does method match research questions?
+        - **Sample adequacy**: Size, selection, representativeness
+        - **Procedure rigor**: Replicability, control of confounds
+        - **Analysis appropriateness**: Statistical/analytical choices
+
+        ## Evidence Quality
+        - **Source credibility**: Peer-reviewed? Reputable venue?
+        - **Data quality**: Reliability, validity of measures
+        - **Interpretation accuracy**: Do conclusions follow from data?
+        - **Generalizability**: External validity considerations
+
+        ## Constructive Feedback Categories
+        1. **Critical flaws**: Must fix before publication
+        2. **Significant improvements**: Would substantially strengthen
+        3. **Minor suggestions**: Polish and refinement
+        4. **Future directions**: Beyond current scope
+
+        ## Questions to Ask
+        - What is the strongest counterargument?
+        - What evidence would change the conclusion?
+        - What assumptions are made but not stated?
+        - How does this connect to existing literature?
+      '';
+    };
+
+    editing-style = {
+      name = "editing-style";
+      description = "Academic prose editing guidelines";
+      tags = [
+        "research"
+        "writing"
+        "editing"
+      ];
+      content = ''
+        # Academic Prose Editing
+
+        ## Clarity Principles
+        - **One idea per sentence**: Split compound thoughts
+        - **Active voice preferred**: "We found" not "It was found"
+        - **Concrete over abstract**: Specific examples ground theory
+        - **Short words when possible**: "use" not "utilize"
+
+        ## Structure Checks
+        - **Topic sentences**: Each paragraph starts with main point
+        - **Logical flow**: Ideas build on previous content
+        - **Transitions**: Connect paragraphs explicitly
+        - **Signposting**: Guide reader through argument
+
+        ## Common Issues
+        | Problem | Fix |
+        |---------|-----|
+        | Passive voice overuse | Convert to active where possible |
+        | Unclear antecedents | Name the referent explicitly |
+        | Jargon without definition | Define on first use |
+        | Long sentences | Split or use punctuation |
+        | Weak verbs | Replace "is/are/was" with action verbs |
+
+        ## Academic Conventions
+        - Hedging: "suggests" vs "proves" (match to evidence)
+        - Citations: Integrate smoothly into prose
+        - Definitions: Establish key terms early
+        - Abbreviations: Spell out on first use
+
+        ## Editing Process
+        1. Structure pass: Paragraph order, flow
+        2. Clarity pass: Sentence-level improvements
+        3. Style pass: Voice, tone, conventions
+        4. Polish pass: Grammar, spelling, punctuation
+      '';
+    };
   };
 
   # ============================================================
