@@ -25,19 +25,19 @@ export EXA_API_KEY="{{ .value }}"
 export ANTHROPIC_API_KEY="{{ .value }}"
 {{- end }}
 
-{{- with $apiKeys.openai }}
+{{- with $apiKeys.openAI }}
 export OPENAI_API_KEY="{{ .value }}"
 {{- end }}
 
-{{- with $apiKeys.openrouter }}
+{{- with $apiKeys.openRouter }}
 export OPENROUTER_API_KEY="{{ .value }}"
 {{- end }}
 
-{{- with $apiKeys.together }}
+{{- with $apiKeys.togetherAI }}
 export TOGETHER_API_KEY="{{ .value }}"
 {{- end }}
 
-{{- with $apiKeys.google }}
+{{- with $apiKeys.googleAI }}
 export GOOGLE_API_KEY="{{ .value }}"
 {{- end }}
 
