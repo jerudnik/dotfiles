@@ -33,13 +33,13 @@
     # ============================================================
     # Development Tools
     # ============================================================
-    opencode # AI coding assistant
-    bun # Fast JavaScript runtime (for OpenCode custom tools)
+    opencode # AI coding assistant (from flake input, bleeding-edge)
+    bun # Fast JavaScript runtime
     nodejs_20 # Provides node + npx for MCP npm servers (align with development.nix)
     direnv # Per-directory environment variables
     delta # Better git diffs with syntax highlighting
-    marksman # Markdown language server (for OpenCode LSP)
-
+    marksman # Markdown language server
+    # OpenSpec (npm): run `npx @anthropic-ai/openspec init` in project for spec-driven dev
     # ============================================================
     # System Monitoring
     # ============================================================
@@ -80,7 +80,7 @@
     tmux # Terminal multiplexer for persistent sessions
 
     # ============================================================
-    # Miscellaneous
+    # Config QoL tools
     # ============================================================
     tealdeer # Fast tldr client in Rust (simplified man pages)
     just # Modern make alternative

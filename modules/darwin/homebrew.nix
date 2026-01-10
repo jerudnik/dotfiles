@@ -29,7 +29,9 @@
 
     # CLI tools installed via Homebrew
     # (Prefer nixpkgs when available, use brew if a package isn't available for macOS)
-    brews = [ ];
+    brews = [
+      #  "dagger/tap/container-use"
+    ];
 
     # GUI applications
     casks = [
@@ -41,6 +43,8 @@
       "helium-browser"
       "beeper"
       "spotify"
+      "zed"
+      "docker-desktop"
     ];
 
     # Mac App Store apps (requires `mas` CLI)
