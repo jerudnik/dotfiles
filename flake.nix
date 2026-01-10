@@ -49,6 +49,12 @@
 
     # NixOS hardware quirks and optimizations
     nixos-hardware.url = "github:NixOS/nixos-hardware";
+
+    # OpenCode AI coding assistant (bleeding-edge from GitHub)
+    opencode = {
+      url = "github:sst/opencode";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -63,6 +69,7 @@
       treefmt-nix,
       nixos-hardware,
       mac-app-util,
+      opencode,
       ...
     }@inputs:
     let
@@ -95,6 +102,10 @@
       # Overlay list per system
       mkOverlays = system: [
         customOverlay
+        # OpenCode from flake input (bleeding-edge)
+        (final: prev: {
+          opencode = opencode.packages.${system}.default;
+        })
       ];
 
       # Shared pkgs constructor
